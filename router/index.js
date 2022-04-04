@@ -21,6 +21,11 @@ const routes = [
         name: 'TrackingForm',
         component: () => import('../src/views/TrackingForm')
     },
+    {
+        path: '/graph',
+        name: 'ViewGraph',
+        component: () => import('../src/views/ViewGraph')
+    },
 ]
 
 const router = new VueRouter({
