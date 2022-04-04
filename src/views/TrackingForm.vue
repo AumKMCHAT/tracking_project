@@ -7,7 +7,8 @@
                 border="left"
                 :icon="alertIcon"
                 :value="submitted"
-                :type="alertType">{{alertMsg}}</v-alert>
+                :type="alertType"
+                @input="submitted=false">{{alertMsg}}</v-alert>
 
             <v-card-title class="text-h4 pl-3">Company Project</v-card-title>
             <v-container>
@@ -21,8 +22,8 @@
                         <v-select
                         v-model="selectedDate"
                         :items="formattedDateOpt"
-                        :item-text="text"
-                        :item-value="value"
+                        item-text="text"
+                        item-value="value"
                         :rules="[v => !!v || 'Date is required!']"
                         label="Date"
                         @change="checkLate()"
@@ -168,6 +169,9 @@ export default {
     }),
     computed: {
         formattedDateOpt () {
+            if (this.dateOpt.length == 0){
+                return [{text: '',value: ''}]
+            }
             return this.dateOpt.map(item => ({
                 text: moment(item).format('dddd DD/MM/YYYY'),
                 value: item
@@ -181,12 +185,12 @@ export default {
             this.allProjects = []
         },
         validate () {
+            this.submitted = false
             this.isSubmitting = true
             var sum = 0;
             for (let i = 0; i<this.selectedProjects.length; i++){
                 sum = sum + this.selectedProjects[i].work
             }
-            // remind: fix show icon
             if (this.$refs.form.validate()) {
                 if (sum == 1){
                     this.submit()
@@ -194,13 +198,15 @@ export default {
                     this.isSubmitting = false
                     this.alertType = "warning"
                     this.alertMsg = "Sum of works must equal to 1"
-                    this.alertIcon = "alert"
+                    this.alertIcon = "error_outline"
+                    this.submitted = true
                 }
             }else{
                 this.isSubmitting = false
                 this.alertType = "warning"
                 this.alertMsg = "Please fill in the required information"
-                this.alertIcon = "alert"
+                this.alertIcon = "error_outline"
+                this.submitted = true
             }
         },
         addField () {
@@ -277,7 +283,8 @@ export default {
                     }else{
                         this.alertType = "error"
                         this.alertMsg = "Fail to submit!"
-                        this.alertIcon = "close"
+                        this.alertIcon = "highlight_off"
+                        this.submitted = true
                     }
                 })
         },
@@ -298,7 +305,6 @@ export default {
             }
         },
         findProjectsOpt () {
-            console.log("findProjects");
             this.allProjects = []
             axios.get(sheetUrl + '/tabs/projectsSheet')
                 .then(res => {
@@ -307,6 +313,16 @@ export default {
                             this.allProjects.push( project[this.name])
                         }
                     }
+                })
+        },
+        summary (sProject, sDerpartment) {
+            var workSum = 0;
+            axios.get(sheetUrl + `/tabs/data/search?project=*${sProject}*&department=*${sDerpartment}*`)
+                .then(res => {
+                    for (const row of res.data){
+                        workSum = workSum + row.work
+                    }
+                    return workSum
                 })
         }
         
