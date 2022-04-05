@@ -1,6 +1,6 @@
 <template>
-    <div class="pa-5 main-layout">
-        <v-card class="pa-5 custom-shadow" >
+    <div class="pa-5 main-layout fill-height">
+        <v-card min-width="800" max-width="800" class="pa-5 custom-card" >
             <v-alert class="col-12"
                 dense dismissible
                 close-icon="close"
@@ -17,9 +17,47 @@
             v-model="form"
             lazy-validation
             >
+                <v-row>
+                    <v-col cols="4">
+                        <!-- <v-select
+                        v-model="name"
+                        :items="nameList"
+                        :rules="[v => !!v || 'Name is required!']"
+                        label="Name"
+                        @change="findProjectsOpt(), findDepartment(), genDateOpt()"
+                        required
+                        ></v-select> -->
+                        <Select
+                        :value="name"
+                        :items="nameList"
+                        rule="Name is required"
+                        label="Name"
+                        @onChange="genOpt"
+                        ></Select>
+                    </v-col>
+
+                    <v-col>
+                        <!-- <v-select
+                        v-model="department"
+                        :items="allDepartments"
+                        :rules="[v => !!v || 'Department is required!']"
+                        label="Department"
+                        readonly
+                        required 
+                        ></v-select> -->
+                        <Select
+                        :value="department"
+                        :items="allDepartments"
+                        rule="Department is required!"
+                        label="Department"
+                        readonly
+                        ></Select>
+                    </v-col>
+                </v-row>
+
                 <v-row class="pl-4">
                     <v-col class="pl-0">
-                        <v-select
+                        <!-- <v-select
                         v-model="selectedDate"
                         :items="formattedDateOpt"
                         item-text="text"
@@ -28,31 +66,15 @@
                         label="Date"
                         @change="checkLate()"
                         required
-                        ></v-select>
-                    </v-col>
-                </v-row>
-
-                <v-row>
-                    <v-col cols="4">
-                        <v-select
-                        v-model="name"
-                        :items="nameList"
-                        :rules="[v => !!v || 'Name is required!']"
-                        label="Name"
-                        @change="findProjectsOpt(),findDepartment()"
-                        required
-                        ></v-select>
-                    </v-col>
-
-                    <v-col>
-                        <v-select
-                        v-model="department"
-                        :items="allDepartments"
-                        :rules="[v => !!v || 'Department is required!']"
-                        label="Department"
-                        readonly
-                        required 
-                        ></v-select>
+                        ></v-select> -->
+                        <Select
+                        :value="selectedDate"
+                        :items="formattedDateOpt"
+                        item-text="text"
+                        item-value="value"
+                        rule="Date is required!"
+                        label="Date"
+                        @onChange="checkLate"></Select>
                     </v-col>
                 </v-row>
 
@@ -64,23 +86,35 @@
                         align-self="center"
                         >{{index+1}}.</v-col>
                         <v-col>
-                            <v-autocomplete
+                            <!-- <v-autocomplete
                             v-model="selectedProject.project"
                             :items="allProjects"
                             :rules="[v => !!v || 'Project is required!']"
                             label="Project"
                             required
-                            ></v-autocomplete>
+                            ></v-autocomplete> -->
+
+                            <AutoComplete
+                            :value="selectedProject.project"
+                            :items="allProjects"
+                            rules="Project is required!"
+                            label="Project"></AutoComplete>
                         </v-col>
 
                         <v-col>
-                            <v-autocomplete
+                            <!-- <v-autocomplete
                             v-model="selectedProject.work"
                             :items="works"
                             :rules="[v => !!v || 'Work is required!']"
                             label="Work"
                             required
-                            ></v-autocomplete>
+                            ></v-autocomplete> -->
+
+                            <AutoComplete
+                            :value="selectedProject.work"
+                            :items="works"
+                            rules="Work is required!"
+                            label="Work"></AutoComplete>
                         </v-col>
 
                         <v-col 
@@ -119,7 +153,8 @@
                         rounded
                         @click="clear">Clear</v-btn>
 
-                        <v-btn color="success" :loading="isSubmitting"
+                        <v-btn color="success" 
+                        :loading="isSubmitting"
                         rounded
                         @click="validate">Submit</v-btn> 
                     </v-flex>
@@ -135,14 +170,16 @@
 import moment from 'moment'
 import axios from 'axios'
 import { sheetUrl } from '../store/constants'
+import Select from '../components/Select.vue'
+import AutoComplete from '../components/AutoComplete.vue'
 
 export default {
     name: 'TrackingForm',
     components: {
-
+        Select,
+        AutoComplete
     },
     beforeMount() {
-        this.genDateOpt()
         this.getName()
     },
     data: () => ({
@@ -169,9 +206,6 @@ export default {
     }),
     computed: {
         formattedDateOpt () {
-            if (this.dateOpt.length == 0){
-                return [{text: '',value: ''}]
-            }
             return this.dateOpt.map(item => ({
                 text: moment(item).format('dddd DD/MM/YYYY'),
                 value: item
@@ -297,10 +331,19 @@ export default {
             this.date = arr[2]
             this.month = arr[1]
         },
-        genDateOpt () {
+        async genDateOpt () {
+            this.dateOpt = []
+            let date,month;
             for (let i = 0; i < 7; i++){
                 if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
-                    this.dateOpt.push(moment().subtract(i, 'days').format("YYYY-MM-DD"))
+                    date = moment().subtract(i, 'days').format("D")
+                    month = moment().subtract(i, 'days').format("M")
+                    await axios.get(sheetUrl + `/tabs/data/search?date=${date}&month=${month}&name=${this.name}`)
+                        .then(res => {
+                            if (res.data.length < 1){
+                                this.dateOpt.push(moment().subtract(i, 'days').format("YYYY-MM-DD"))
+                            }
+                        })
                 }
             }
         },
@@ -314,6 +357,11 @@ export default {
                         }
                     }
                 })
+        },
+        genOpt () {
+            this.findDepartment()
+            this.genDateOpt()
+            this.findProjectsOpt()
         },
         summary (sProject, sDerpartment) {
             var workSum = 0;
@@ -332,8 +380,9 @@ export default {
 </script>
 
 <style scoped>
-.custom-shadow {
+.custom-card {
     box-shadow: 3px 16px 43px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 12px !important;
 }
 .del-btn:hover {
     background: #FF605D;
@@ -346,5 +395,11 @@ export default {
 .add-btn:hover {
     background: #5DADE2;
     color: #ffff !important;
+}
+.main-layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, rgba(249,254,255,0.14469537815126055) 0%, rgba(204,233,233,1) 100%);
 }
 </style>
