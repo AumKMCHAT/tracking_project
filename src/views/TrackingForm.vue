@@ -24,7 +24,7 @@
                         :items="nameList"
                         :rules="[v => !!v || 'Name is required!']"
                         label="Name"
-                        @change="findProjectsOpt(), findDepartment(), genDateOpt()"
+                        @change="genOpt"
                         required
                         ></v-select> -->
                         <Select
@@ -98,7 +98,8 @@
                             :value="selectedProject.project"
                             :items="allProjects"
                             rules="Project is required!"
-                            label="Project"></AutoComplete>
+                            label="Project"
+                            @onChange="selectedProject.project=$event"></AutoComplete>
                         </v-col>
 
                         <v-col>
@@ -114,7 +115,8 @@
                             :value="selectedProject.work"
                             :items="works"
                             rules="Work is required!"
-                            label="Work"></AutoComplete>
+                            label="Work"
+                            @onChange="selectedProject.work=$event"></AutoComplete>
                         </v-col>
 
                         <v-col 
@@ -172,6 +174,7 @@ import axios from 'axios'
 import { sheetUrl } from '../store/constants'
 import Select from '../components/Select.vue'
 import AutoComplete from '../components/AutoComplete.vue'
+import {mapState} from 'vuex'
 
 export default {
     name: 'TrackingForm',
@@ -210,13 +213,15 @@ export default {
                 text: moment(item).format('dddd DD/MM/YYYY'),
                 value: item
             }))
-        }
+        },
+        ...mapState({
+            employeeName: state => state.employee.employeeName
+        })
     },
     methods: {
         clear () {
-            this.$refs.form.reset()
             this.selectedProjects = [{project: '',work: ''}]
-            this.allProjects = []
+            this.selectedDate = ' '
         },
         validate () {
             this.submitted = false
@@ -263,22 +268,20 @@ export default {
                 return false
             }
         },
-        getProjects () {
-            // tabs/sheetName
-            axios.get(sheetUrl + '/tabs/projectsSheet')
-            .then(res => {
-                for (const n of res.data){
-                    this.allProjects.push(n.project)
-                }
-            })
-        },
         getName () {
+            // tabs/sheetName
             axios.get(sheetUrl + '/tabs/nameSheet')
-            .then(res => {
-                for (const n of res.data){
-                    this.nameList.push(n.name)
-                }
-            })
+                .then(res => {
+                    for (const n of res.data){
+                        this.nameList.push(n.name)
+                    }
+                    if (this.employeeName){
+                        this.name = this.employeeName
+                        this.findDepartment()
+                        this.genDateOpt()
+                        this.findProjectsOpt()
+                    }
+                })
         },
         findDepartment () {
             axios.get(sheetUrl + `/tabs/nameSheet/name/${this.name}`)
@@ -286,8 +289,8 @@ export default {
                     this.department = res.data[0].department
                 })
         },
-        submit () {
-            let row;
+        async submit () {
+            let row, resPost;
             let msg = "";
             if (this.late){
                 msg = "Late"
@@ -304,46 +307,105 @@ export default {
                 }
                 this.data.push(row)
             }
-            axios.post(sheetUrl + '/tabs/data', this.data )
-                .then(res => {
-                    if (res.status == 200){
-                        this.data = []
-                        this.isSubmitting = false
-                        this.alertType = "success"
-                        this.alertMsg = "Submitted!"
-                        this.alertIcon = "check"
-                        this.submitted = true
-                        this.clear()
-                    }else{
-                        this.alertType = "error"
-                        this.alertMsg = "Fail to submit!"
-                        this.alertIcon = "highlight_off"
-                        this.submitted = true
+            resPost = await axios.post(sheetUrl + '/tabs/data', this.data )
+                if (resPost.status == 200){
+                    row = {
+                        work: 1,
+                        remark: msg,
                     }
-                })
+                    console.log(this.name,this.date,this.month);
+                    axios.patch(sheetUrl + `/tabs/sumData/search?name=${this.name}&date=${this.date}&month=${this.month}`,row)
+                        .then(res => {
+                            console.log(row);
+                            console.log(res);
+                        })
+                    this.data = []
+                    this.isSubmitting = false
+                    this.alertType = "success"
+                    this.alertMsg = "Submitted!"
+                    this.alertIcon = "check"
+                    this.submitted = true
+                    this.clear()
+                }else{
+                    this.alertType = "error"
+                    this.alertMsg = "Fail to submit!"
+                    this.alertIcon = "highlight_off"
+                    this.submitted = true
+                }
+                this.$store.commit("employee/setName", this.name)
+
         },
-        checkLate () {
+        checkLate (val) {
+            this.selectedDate = val
             this.late = false
             if (moment(this.selectedDate).isBefore(this.today)){
                 this.late = true
             }
             let arr = this.selectedDate.split("-")
-            this.date = arr[2]
-            this.month = arr[1]
+            this.date = parseInt(arr[2])
+            this.month = parseInt(arr[1])
         },
         async genDateOpt () {
             this.dateOpt = []
-            let date,month;
-            for (let i = 0; i < 7; i++){
-                if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
-                    date = moment().subtract(i, 'days').format("D")
-                    month = moment().subtract(i, 'days').format("M")
-                    await axios.get(sheetUrl + `/tabs/data/search?date=${date}&month=${month}&name=${this.name}`)
-                        .then(res => {
-                            if (res.data.length < 1){
-                                this.dateOpt.push(moment().subtract(i, 'days').format("YYYY-MM-DD"))
+            let date, month, data1, data2, res;
+            let found1 = false;
+            let found2 = false;
+            // for (let i = 0; i < 7; i++){
+            //     if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
+            //         date = moment().subtract(i, 'days').format("D")
+            //         month = moment().subtract(i, 'days').format("M")
+            //         await axios.get(sheetUrl + `/tabs/data/search?date=${date}&month=${month}&name=${this.name}`)
+            //             .then(res => {
+            //                 if (res.data.length < 1){
+            //                     this.dateOpt.push(moment().subtract(i, 'days').format("YYYY-MM-DD"))
+            //                 }
+            //             })
+            //     }
+            // }
+
+            if (moment().subtract(6, 'days').format("M") == moment().format("M")){
+                res = await axios.get(sheetUrl + `/tabs/data/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                    data1 = res.data
+                for (let i = 0; i < 7; i++){
+                    found1 = false
+                    if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
+                        date = moment().subtract(i, 'days').format("D")
+                        month = moment().subtract(i, 'days').format("M")
+                        for (const row of data1){
+                            if (row.date == date && row.month == month){
+                                found1 = true
                             }
-                        })
+                        }
+                        if (!found1){
+                            this.dateOpt.push(moment().subtract(i, 'days').format("YYYY-MM-DD"))
+                        }
+                    }
+                }
+            }else{
+                res = await axios.get(sheetUrl + `/tabs/data/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                    data1 = res.data
+                res = await axios.get(sheetUrl + `/tabs/data/search?month=${moment().format("M")}&name=${this.name}`)
+                    data2 = res.data
+                for (let i = 0; i < 7; i++){
+                    found1 = false
+                    found2 = false
+                    if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
+                        date = moment().subtract(i, 'days').format("D")
+                        month = moment().subtract(i, 'days').format("M")
+                        for (const row of data1){
+                            if (row.date == date && row.month == month){
+                                found1 = true
+                            }
+                        }
+                        for (const row of data2){
+                            if (row.date == date && row.month == month){
+                                found2 = true
+                            }
+                        }
+                        if (!found1 && !found2){
+                            this.dateOpt.push(moment().subtract(i, 'days').format("YYYY-MM-DD"))
+                        }
+                    }
                 }
             }
         },
@@ -358,20 +420,11 @@ export default {
                     }
                 })
         },
-        genOpt () {
+        genOpt (val) {
+            this.name = val
             this.findDepartment()
             this.genDateOpt()
             this.findProjectsOpt()
-        },
-        summary (sProject, sDerpartment) {
-            var workSum = 0;
-            axios.get(sheetUrl + `/tabs/data/search?project=*${sProject}*&department=*${sDerpartment}*`)
-                .then(res => {
-                    for (const row of res.data){
-                        workSum = workSum + row.work
-                    }
-                    return workSum
-                })
         }
         
     }
