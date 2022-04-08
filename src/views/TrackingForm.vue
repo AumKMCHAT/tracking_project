@@ -19,14 +19,6 @@
             >
                 <v-row>
                     <v-col cols="4">
-                        <!-- <v-select
-                        v-model="name"
-                        :items="nameList"
-                        :rules="[v => !!v || 'Name is required!']"
-                        label="Name"
-                        @change="genOpt"
-                        required
-                        ></v-select> -->
                         <Select
                         :value="name"
                         :items="nameList"
@@ -37,14 +29,6 @@
                     </v-col>
 
                     <v-col>
-                        <!-- <v-select
-                        v-model="department"
-                        :items="allDepartments"
-                        :rules="[v => !!v || 'Department is required!']"
-                        label="Department"
-                        readonly
-                        required 
-                        ></v-select> -->
                         <Select
                         :value="department"
                         :items="allDepartments"
@@ -57,16 +41,6 @@
 
                 <v-row class="pl-4">
                     <v-col class="pl-0">
-                        <!-- <v-select
-                        v-model="selectedDate"
-                        :items="formattedDateOpt"
-                        item-text="text"
-                        item-value="value"
-                        :rules="[v => !!v || 'Date is required!']"
-                        label="Date"
-                        @change="checkLate()"
-                        required
-                        ></v-select> -->
                         <Select
                         :value="selectedDate"
                         :items="formattedDateOpt"
@@ -86,14 +60,6 @@
                         align-self="center"
                         >{{index+1}}.</v-col>
                         <v-col>
-                            <!-- <v-autocomplete
-                            v-model="selectedProject.project"
-                            :items="allProjects"
-                            :rules="[v => !!v || 'Project is required!']"
-                            label="Project"
-                            required
-                            ></v-autocomplete> -->
-
                             <AutoComplete
                             :value="selectedProject.project"
                             :items="allProjects"
@@ -103,14 +69,6 @@
                         </v-col>
 
                         <v-col>
-                            <!-- <v-autocomplete
-                            v-model="selectedProject.work"
-                            :items="works"
-                            :rules="[v => !!v || 'Work is required!']"
-                            label="Work"
-                            required
-                            ></v-autocomplete> -->
-
                             <AutoComplete
                             :value="selectedProject.work"
                             :items="works"
@@ -196,6 +154,7 @@ export default {
         today: moment().format('YYYY-MM-DD'),
         date: '',
         month: '',
+        year: moment().format("YYYY"),
         form: true,
         late: false,
         data: [],
@@ -307,7 +266,7 @@ export default {
                 }
                 this.data.push(row)
             }
-            resPost = await axios.post(sheetUrl + '/tabs/data', this.data )
+            resPost = await axios.post(sheetUrl + `/tabs/data_${this.year}`, this.data )
                 if (resPost.status == 200){
                     row = {
                         work: 1,
@@ -350,21 +309,8 @@ export default {
             let date, month, data1, data2, res;
             let found1 = false;
             let found2 = false;
-            // for (let i = 0; i < 7; i++){
-            //     if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
-            //         date = moment().subtract(i, 'days').format("D")
-            //         month = moment().subtract(i, 'days').format("M")
-            //         await axios.get(sheetUrl + `/tabs/data/search?date=${date}&month=${month}&name=${this.name}`)
-            //             .then(res => {
-            //                 if (res.data.length < 1){
-            //                     this.dateOpt.push(moment().subtract(i, 'days').format("YYYY-MM-DD"))
-            //                 }
-            //             })
-            //     }
-            // }
-
             if (moment().subtract(6, 'days').format("M") == moment().format("M")){
-                res = await axios.get(sheetUrl + `/tabs/data/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
                     data1 = res.data
                 for (let i = 0; i < 7; i++){
                     found1 = false
@@ -382,9 +328,9 @@ export default {
                     }
                 }
             }else{
-                res = await axios.get(sheetUrl + `/tabs/data/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
                     data1 = res.data
-                res = await axios.get(sheetUrl + `/tabs/data/search?month=${moment().format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?month=${moment().format("M")}&name=${this.name}`)
                     data2 = res.data
                 for (let i = 0; i < 7; i++){
                     found1 = false

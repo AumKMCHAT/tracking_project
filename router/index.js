@@ -26,6 +26,12 @@ const routes = [
         name: 'ViewGraph',
         component: () => import('../src/views/ViewGraph')
     },
+    {
+        path: '/submission',
+        name: 'ViewSubmission',
+        component: () => import('../src/views/ViewSubmission')
+    },
+
 ]
 
 const router = new VueRouter({
