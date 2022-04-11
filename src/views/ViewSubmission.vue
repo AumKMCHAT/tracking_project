@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <v-card>
+    <div class="pa-5 main-layout">
+        <v-card class="form-card">
             <v-card-title class="text-h4 pl-3">Submission</v-card-title>
             <v-form>
                 <v-row class="ma-2">
@@ -54,7 +54,9 @@
                     cols="auto"
                     align-self="center">
                         <v-btn
+                        :loading="isLoading"
                         outlined
+                        rounded
                         color="#5DADE2"
                         class="view-btn"
                         @click="validate">view</v-btn>
@@ -63,24 +65,25 @@
                 </v-row>
             </v-form>
 
-            <v-card v-if="dataShow.length > 0" 
-                class="ma-4">
-                <v-row>
-                    <v-col>Name</v-col>
-                    <v-col
-                    v-for="(column, index) in dateRange"
-                    v-bind:key="index">{{column.date}}/{{column.month}}/{{year}}</v-col>
-                </v-row>
-                <div v-for="(name, n) in nameList"
-                v-bind:key="n">
-                <v-row>
-                    <v-col>{{name}}</v-col>
-                    <v-col
-                    v-for="(check, m) in dateRange"
-                    v-bind:key="m"
-                    ><v-icon
-                    >{{dataShow[n][m]==0?"close":(dataShow[n][m]==1?"done":"timelapse")}}</v-icon></v-col>
-                </v-row></div>
+            <v-card v-if="dataShow.length > 0"
+                class="table-card">
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th
+                        v-for="(column, index) in dateRange"
+                        v-bind:key="index">{{column.date}} {{column.monthShow}}</th>
+                    </tr>
+                    <tr
+                    v-for="(name, n) in nameList"
+                    v-bind:key="n">
+                        <td class="name">{{name}}</td>
+                        <td
+                        v-for="(check, m) in dateRange"
+                        v-bind:key="m"><v-icon
+                        :color="dataShow[n][m]==0?'error':(dataShow[n][m]==1?'green':'orange')">{{dataShow[n][m]==0?"close":(dataShow[n][m]==1?"done":"access_alarm")}}</v-icon></td>
+                    </tr>
+                </table>
             </v-card>
         </v-card>
     </div>
@@ -99,6 +102,7 @@ export default {
     },
     beforeMount() {
         this.genMonthOpt()
+        this.getName()
     },
     data: () => ({
         nameList: [],
@@ -112,7 +116,8 @@ export default {
         data: [],
         dateRange: [],
         dataShow: [],
-        year: moment().format("YYYY")
+        year: moment().format("YYYY"),
+        isLoading: false
     }),
     methods: {
         getName () {
@@ -163,7 +168,6 @@ export default {
             }
         },
         validate () {
-            this.getName()
             this.dataShow = []
             this.dateRange = []
             if (this.lastMonth < this.firstMonth){
@@ -182,6 +186,7 @@ export default {
         },
         async getData () {
             this.data = []
+            this.isLoading = true
             let res;
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
                 // get a day
@@ -189,6 +194,7 @@ export default {
                 this.data = res.data
                 this.findRange()
                 this.checkData()
+                this.isLoading = false
             }else{
                 if (this.firstMonth == this.lastMonth){
                     // get a month
@@ -197,6 +203,7 @@ export default {
                     this.filterData()
                     this.findRange()
                     this.checkData()
+                    this.isLoading = false
                 }else{
                     //get in range
                     res = await axios.get(sheetUrl + `/tabs/data_${this.year}/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
@@ -205,6 +212,7 @@ export default {
                     this.filterData()
                     this.findRange()
                     this.checkData()
+                    this.isLoading = false
                 }
             }
         },
@@ -212,14 +220,16 @@ export default {
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
                 this.dateRange.push({
                     date: this.firstDay,
-                    month: this.firstMonth})
+                    month: this.firstMonth,
+                    monthShow: moment(`${this.firstMonth}`).format('MMM')});
             }else{
                 if (this.firstMonth == this.lastMonth){
                     for (let i = this.firstDay; i <= this.lastDay; i++){
                         if (moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 6 && moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 7){
                             this.dateRange.push({
                             date: i,
-                            month: this.firstMonth})
+                            month: this.firstMonth,
+                            monthShow: moment(`${this.firstMonth}`).format('MMM')})
                         }
                     }
                 }else{
@@ -228,14 +238,16 @@ export default {
                             if (moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 6 && moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 7){
                                 this.dateRange.push({
                                 date: i,
-                                month: this.firstMonth})
+                                month: this.firstMonth,
+                                monthShow: moment(`${this.firstMonth}`).format('MMM')})
                             }
                         }
                         for (let i = 1; i <= this.lastDay; i++){
                             if (moment(`${this.year}-${this.lastMonth}-${i}`).isoWeekday() != 6 && moment(`${this.year}-${this.lastMonth}-${i}`).isoWeekday() != 7){
                                 this.dateRange.push({
                                 date: i,
-                                month: this.lastMonth})
+                                month: this.lastMonth,
+                                monthShow: moment(`${this.lastMonth}`).format('MMM')})
                             }
                         }
                         // console.log(this.dateRange);
@@ -259,7 +271,8 @@ export default {
                             if (!(dow == "Saturday" || dow == "Sunday")){
                                 this.dateRange.push({
                                     date: d,
-                                    month: m})
+                                    month: m,
+                                    monthShow: moment(`${m}`).format('MMM')})
                             }
                         }
                     }
@@ -294,7 +307,6 @@ export default {
             for (const name of this.nameList){
                 this.dataShow.push(Array.from({length: this.dateRange.length}, (_, i) => 0))
             }
-            console.log(this.dataShow[1]);
             for (const data of this.data){
                 n = false
                 m = false
@@ -304,7 +316,6 @@ export default {
                         break;
                     }
                 }
-                console.log(this.dateRange.length);
                 for (let i = 0; i < this.dateRange.length; i++){
                     if (data.date == this.dateRange[i].date && data.month == this.dateRange[i].month){
                         m = i
@@ -319,7 +330,6 @@ export default {
                     }
                 }
             }
-            console.log(this.dataShow);
         }
     }
 }
@@ -333,6 +343,43 @@ export default {
 .view-btn:hover {
     background: #5DADE2;
     color: #ffff !important;
+}
+.icon {
+    justify-items: center;
+}
+.form-card {
+    margin: 20px !important;
+    padding: 10px !important;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
+    border-radius: 12px !important;
+}
+.table-card {
+    text-align: center;
+    justify-content: center;
+    box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.25) !important;
+    margin: 20px !important;
+}
+.main-layout {
+    height: 100%;
+    display: 80%;
+    justify-content: center;
+    align-content: center;
+    background: radial-gradient(circle, rgba(249,254,255,0.14469537815126055) 0%, rgba(204,233,233,1) 100%);
+}
+.name {
+    text-align: left;
+}
+table {
+    width: 100%;
+    margin: 10px;
+    padding: 5px;
+}
+th {
+    margin: 2px;
+}
+td {
+    margin: 2px;
+    text-align: center;
 }
 
 </style>

@@ -249,7 +249,8 @@ export default {
                 })
         },
         async submit () {
-            let row, resPost;
+            let row, resPost, projectData;
+            let newVal;
             let msg = "";
             if (this.late){
                 msg = "Late"
@@ -268,16 +269,24 @@ export default {
             }
             resPost = await axios.post(sheetUrl + `/tabs/data_${this.year}`, this.data )
                 if (resPost.status == 200){
-                    row = {
-                        work: 1,
-                        remark: msg,
+                    projectData = await axios.get(sheetUrl + `/tabs/sumProject`)
+                    for (const m of this.data){
+                        for (const n of projectData.data){
+                           if (n.project == m.project){
+                               console.log(n);
+                               newVal = {
+                                    [this.name]: parseFloat(n[this.name]) + parseFloat(m.work),
+                                    [this.department]: parseFloat(n[this.department]) + parseFloat(m.work),
+                                    All: parseFloat(n.DEV) + parseFloat(n.Graphic) + parseFloat(n.BA) + parseFloat(m.work)
+                               }
+                            axios.patch(sheetUrl + `/tabs/sumProject/search?project=${m.project}`, newVal)
+                                .then(res => {
+                                    console.log(res.status);
+                                })
+                            break;
+                           } 
+                        }
                     }
-                    console.log(this.name,this.date,this.month);
-                    axios.patch(sheetUrl + `/tabs/sumData/search?name=${this.name}&date=${this.date}&month=${this.month}`,row)
-                        .then(res => {
-                            console.log(row);
-                            console.log(res);
-                        })
                     this.data = []
                     this.isSubmitting = false
                     this.alertType = "success"
