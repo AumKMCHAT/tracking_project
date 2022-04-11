@@ -57,7 +57,7 @@
                         :loading="isLoading"
                         outlined
                         rounded
-                        color="#5DADE2"
+                        color="primary"
                         class="view-btn"
                         @click="validate">view</v-btn>
                     </v-col>
