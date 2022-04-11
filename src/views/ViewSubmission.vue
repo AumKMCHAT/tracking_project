@@ -370,7 +370,7 @@ export default {
     text-align: left;
 }
 table {
-    width: 100%;
+    width: auto;
     margin: 10px;
     padding: 5px;
 }

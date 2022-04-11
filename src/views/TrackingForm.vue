@@ -71,7 +71,9 @@
                         <v-col>
                             <AutoComplete
                             :value="selectedProject.work"
-                            :items="works"
+                            :items="formattedWorkOpt"
+                            item-text="text"
+                            item-value="value"
                             rules="Work is required!"
                             label="Work"
                             @onChange="selectedProject.work=$event"></AutoComplete>
@@ -150,7 +152,7 @@ export default {
         works: [0.0625, 0.125, 0.1875, 0.25, 0.3125, 0.3750, 0.4375, 0.5, 0.5625, 0.625, 0.6875, 0.75, 0.8125, 0.8750, 0.9375, 1],
         name: '',
         department: '',
-        selectedProjects: [{project: '',work: ''}],
+        selectedProjects: [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}],
         today: moment().format('YYYY-MM-DD'),
         date: '',
         month: '',
@@ -169,18 +171,26 @@ export default {
     computed: {
         formattedDateOpt () {
             return this.dateOpt.map(item => ({
-                text: moment(item).format('dddd DD/MM/YYYY'),
+                text: moment(item).format('ddd DD MMM YYYY'),
                 value: item
             }))
         },
         ...mapState({
             employeeName: state => state.employee.employeeName
-        })
+        }),
+        formattedWorkOpt () {
+            return this.works.map(item => ({
+                text: `${item*8} hr (${item})`,
+                value: item
+            }))
+        }
     },
     methods: {
         clear () {
-            this.selectedProjects = [{project: '',work: ''}]
-            this.selectedDate = ' '
+            if (confirm("Do you really want to clear this form?")){
+                this.selectedProjects = [{project: '',work: ''}]
+                this.selectedDate = ' '
+            }
         },
         validate () {
             this.submitted = false
@@ -191,7 +201,9 @@ export default {
             }
             if (this.$refs.form.validate()) {
                 if (sum == 1){
-                    this.submit()
+                    if (confirm("Do you want to submit?")){
+                        this.submit()
+                    }
                 }else{
                     this.isSubmitting = false
                     this.alertType = "warning"
@@ -249,23 +261,25 @@ export default {
                 })
         },
         async submit () {
-            let row, resPost, projectData;
+            let row, resPost, projectData, index;
             let newVal;
             let msg = "";
             if (this.late){
                 msg = "Late"
             }
             for (let i = 0;i < this.selectedProjects.length;i++){
-                row = {
-                    date: this.date,
-                    month: this.month,
-                    project: this.selectedProjects[i].project,
-                    work: this.selectedProjects[i].work,
-                    name: this.name,
-                    department: this.department,
-                    remark: msg,
+                if (this.selectedProjects[i].project != '' && this.selectedProjects[i].work != ''){
+                    row = {
+                        date: this.date,
+                        month: this.month,
+                        project: this.selectedProjects[i].project,
+                        work: this.selectedProjects[i].work,
+                        name: this.name,
+                        department: this.department,
+                        remark: msg,
+                    }
+                    this.data.push(row)
                 }
-                this.data.push(row)
             }
             resPost = await axios.post(sheetUrl + `/tabs/data_${this.year}`, this.data )
                 if (resPost.status == 200){
@@ -273,7 +287,6 @@ export default {
                     for (const m of this.data){
                         for (const n of projectData.data){
                            if (n.project == m.project){
-                               console.log(n);
                                newVal = {
                                     [this.name]: parseFloat(n[this.name]) + parseFloat(m.work),
                                     [this.department]: parseFloat(n[this.department]) + parseFloat(m.work),
@@ -293,7 +306,8 @@ export default {
                     this.alertMsg = "Submitted!"
                     this.alertIcon = "check"
                     this.submitted = true
-                    this.clear()
+                    this.selectedProjects = [{project: '',work: ''}, {project: '',work: ''}, {project: '',work: ''}]
+                    this.selectedDate = ' '
                 }else{
                     this.alertType = "error"
                     this.alertMsg = "Fail to submit!"
