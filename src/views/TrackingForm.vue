@@ -494,9 +494,10 @@ export default {
             if (confirm("Do you want to clear all cache?")){
                 this.$store.commit("employee/clearName")
                 this.$store.commit("projects/clearName")
-                this.name = ''
+                this.name = ' '
                 this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
                 this.selectedDate = ' '
+                this.department = ' '
             }
         }
         
