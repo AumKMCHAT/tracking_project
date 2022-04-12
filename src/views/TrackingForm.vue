@@ -21,7 +21,9 @@
                     <v-col cols="4">
                         <Select
                         :value="name"
-                        :items="nameList"
+                        :items="formattedNameOpt"
+                        item-text="text"
+                        item-value="value"
                         rule="Name is required"
                         label="Name"
                         @onChange="genOpt"
@@ -109,7 +111,7 @@
                         <v-btn
                         outlined
                         color="warning"
-                        class="mb-4 mt-3"
+                        class="mb-4 mt-3 clearC-btn"
                         small
                         @click="clearCache"
                         >Clear cache</v-btn>
@@ -157,6 +159,7 @@ export default {
     },
     data: () => ({
         nameList: [],
+        nameData: [],
         allDepartments:[ "DEV", "BA", "QA", "GRAPHIC"],
         allProjects: [],
         works: [0.0625, 0.125, 0.1875, 0.25, 0.3125, 0.3750, 0.4375, 0.5, 0.5625, 0.625, 0.6875, 0.75, 0.8125, 0.8750, 0.9375, 1],
@@ -193,7 +196,13 @@ export default {
         }),
         formattedWorkOpt () {
             return this.works.map(item => ({
-                text: `${item*8} hr (${item})`,
+                text: `${item*8} hrs (${item})`,
+                value: item
+            }))
+        },
+        formattedNameOpt () {
+            return this.nameList.map(item => ({
+                text: `(${this.showDepartment(item)}) ${item}`,
                 value: item
             }))
         }
@@ -253,12 +262,30 @@ export default {
             }
         },
         getName () {
+            let dev = [], ba = [], graphic = []
             // tabs/sheetName
             axios.get(sheetUrl + '/tabs/nameSheet')
                 .then(res => {
+                    this.nameData = res.data
                     for (const n of res.data){
-                        this.nameList.push(n.name)
+                        switch (n.department) {
+                            case "DEV":
+                                dev.push(n.name)
+                                break;
+                            case "BA":
+                                ba.push(n.name)
+                                break;
+                            case "GRAPHIC":
+                                graphic.push(n.name)
+                                break;
+                            default:
+                                break;
+                        }
                     }
+                    dev.sort()
+                    ba.sort()
+                    graphic.sort()
+                    this.nameList = ba.concat(dev,graphic)
                     if (this.employeeName){
                         this.name = this.employeeName
                         for (let i = 0;i < this.projectsName.length;i++){
@@ -271,10 +298,18 @@ export default {
                 })
         },
         findDepartment () {
-            axios.get(sheetUrl + `/tabs/nameSheet/name/${this.name}`)
-                .then(res => {
-                    this.department = res.data[0].department
-                })
+            for (const n of this.nameData){
+                if (this.name == n.name){
+                    this.department = n.department
+                }
+            }
+        },
+        showDepartment (val) {
+            for (const n of this.nameData){
+                if (val == n.name){
+                    return n.department
+                }
+            }
         },
         async submit () {
             let row, resPost, projectData, index;
@@ -437,6 +472,7 @@ export default {
             if (confirm("Do you want to clear all cache?")){
                 this.$store.commit("employee/clearName")
                 this.$store.commit("projects/clearName")
+                this.name = ''
                 this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
                 this.selectedDate = ' '
             }
@@ -462,6 +498,10 @@ export default {
 }
 .add-btn:hover {
     background: #5DADE2;
+    color: #ffff !important;
+}
+.clearC-btn:hover {
+    background: #ff9233;
     color: #ffff !important;
 }
 .main-layout {
