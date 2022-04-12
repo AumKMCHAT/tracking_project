@@ -1,6 +1,6 @@
 <template>
     <div class="pa-5 main-layout fill-height">
-        <v-card min-width="800" max-width="800" class="pa-5 custom-card" >
+        <v-card class="pa-5 custom-card" >
             <v-alert class="col-12"
                 dense dismissible
                 close-icon="close"
@@ -10,7 +10,8 @@
                 :type="alertType"
                 @input="submitted=false">{{alertMsg}}</v-alert>
 
-            <v-card-title class="text-h4 pl-3">Company Project</v-card-title>
+            <v-card-title class="text-h4 pl-3"
+            >Company Project</v-card-title>
             <v-container>
             <v-form 
             ref="form"
@@ -180,13 +181,34 @@ export default {
         alertType: "success",
         alertMsg: "Submitted",
         alertIcon: "check",
+        day: ''
     }),
     computed: {
         formattedDateOpt () {
-            return this.dateOpt.map(item => ({
-                text: moment(item).format('ddd DD MMM YYYY'),
-                value: item
-            }))
+            let day, format, date, dateArr = [];
+            this.dateOpt.map(item => {
+                day = moment(item).format('ddd')
+                switch (day) {
+                    case "Tue":
+                        format = moment(item).format("ddd\xa0\xa0DD MMM YYYY")
+                        break;
+                    case "Thu":
+                        format = moment(item).format("ddd\xa0\xa0DD MMM YYYY")
+                        break;
+                    case "Fri":
+                        format = moment(item).format(`ddd\xa0\xa0\xa0\xa0DD MMM YYYY`)
+                        break;
+                    default:
+                        format = moment(item).format("ddd DD MMM YYYY")
+                        break;
+                }
+                date = {
+                    text: `${format}`,
+                    value: item }
+                dateArr.push(date)
+            })
+
+            return dateArr
         },
         ...mapState({
             employeeName: state => state.employee.employeeName
