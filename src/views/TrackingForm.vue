@@ -97,13 +97,23 @@
                 </div>
 
                 <v-row>
-                    <v-btn
-                    :disabled="checkWorks()"
-                    outlined
-                    color="primary"
-                    class="mb-4 mt-3 add-btn"
-                    small
-                    @click="addField">Add more work</v-btn>
+                    <v-col>
+                        <v-btn
+                        :disabled="checkWorks()"
+                        outlined
+                        color="primary"
+                        class="mb-4 mt-3 mr-4 add-btn"
+                        small
+                        @click="addField">Add more work</v-btn>
+
+                        <v-btn
+                        outlined
+                        color="warning"
+                        class="mb-4 mt-3"
+                        small
+                        @click="clearCache"
+                        >Clear cache</v-btn>
+                    </v-col>
                 </v-row>
 
                 <v-row> </v-row>
@@ -178,6 +188,9 @@ export default {
         ...mapState({
             employeeName: state => state.employee.employeeName
         }),
+        ...mapState({
+            projectsName: state => state.projects.projectsName
+        }),
         formattedWorkOpt () {
             return this.works.map(item => ({
                 text: `${item*8} hr (${item})`,
@@ -188,7 +201,7 @@ export default {
     methods: {
         clear () {
             if (confirm("Do you really want to clear this form?")){
-                this.selectedProjects = [{project: '',work: ''}]
+                this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
                 this.selectedDate = ' '
             }
         },
@@ -248,6 +261,9 @@ export default {
                     }
                     if (this.employeeName){
                         this.name = this.employeeName
+                        for (let i = 0;i < this.projectsName.length;i++){
+                            this.selectedProjects[i].project = this.projectsName[i].project 
+                        }
                         this.findDepartment()
                         this.genDateOpt()
                         this.findProjectsOpt()
@@ -306,8 +322,25 @@ export default {
                     this.alertMsg = "Submitted!"
                     this.alertIcon = "check"
                     this.submitted = true
-                    this.selectedProjects = [{project: '',work: ''}, {project: '',work: ''}, {project: '',work: ''}]
-                    this.selectedDate = ' '
+                    //remove lasted submitted date option
+                    for (let i = 0;i < this.dateOpt.length;i++){
+                        if (moment(`${this.dateOpt[i]}`).isSame(`${this.selectedDate}`, 'day')){
+                            this.dateOpt.splice(i,1)
+                        }
+                    }
+                    this.$store.commit("projects/setName", this.selectedProjects)
+                    for (let i = 0;i < this.projectsName.length;i++){
+                        if (this.selectedProjects[i].project != '' && this.selectedProjects[i].work != ''){
+                            this.selectedProjects[i].project = this.projectsName[i].project 
+                            this.selectedProjects[i].work = ''
+                        }
+                    }
+                    if (this.dateOpt.length >= 1){
+                        this.selectedDate = this.dateOpt[0]
+                    }else{
+                        this.selectedDate = ''
+                    }
+                    
                 }else{
                     this.alertType = "error"
                     this.alertMsg = "Fail to submit!"
@@ -377,6 +410,10 @@ export default {
                     }
                 }
             }
+            if (this.dateOpt.length >= 1){
+                this.selectedDate = this.dateOpt[0]
+                this.checkLate(this.selectedDate)
+            }
         },
         findProjectsOpt () {
             this.allProjects = []
@@ -391,9 +428,18 @@ export default {
         },
         genOpt (val) {
             this.name = val
+            this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
             this.findDepartment()
             this.genDateOpt()
             this.findProjectsOpt()
+        },
+        clearCache () {
+            if (confirm("Do you want to clear all cache?")){
+                this.$store.commit("employee/clearName")
+                this.$store.commit("projects/clearName")
+                this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
+                this.selectedDate = ' '
+            }
         }
         
     }

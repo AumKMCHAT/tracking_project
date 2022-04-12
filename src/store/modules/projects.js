@@ -1,14 +1,14 @@
 const state = {
-    employeeName: ""
+    projectsName: []
 }
 const getters = {}
 const actions = {}
 const mutations = {
-    setName(state, name) {
-        state.employeeName = name
+    setName(state, list) {
+        state.projectsName = list
     },
-    clearName(state, name) {
-        state.employeeName = ""
+    clearName(state, list) {
+        state.projectsName = []
     }
 }
 
