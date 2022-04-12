@@ -218,7 +218,7 @@ export default {
         }),
         formattedWorkOpt () {
             return this.works.map(item => ({
-                text: `${item*8} hrs (${item})`,
+                text: item*8>1?`${item*8} hrs (${item})`:`${item*8} hr (${item})`,
                 value: item
             }))
         },
