@@ -5,49 +5,34 @@
             <v-form>
                 <v-row class="ma-2">
                     <v-col>
-                        <Select
-                        :value="firstMonth"
-                        :items="monthOpt"
-                        rule="Month is required"
-                        label="Month"
-                        @onChange="genFirstDateOpt"
-                        ></Select>
-                    </v-col>
-
-                    <v-col>
-                        <Select
-                        :value="firstDay"
-                        :items="firstDateOpt"
-                        rule="Date is required"
-                        label="Date"
-                        @onChange="firstDay=$event"
-                        ></Select> 
-                    </v-col>
-
-                    <v-col
-                    cols="auto"
-                    align-self="center">
-                        TO
-                    </v-col>
-
-                    <v-col>
-                        <Select
-                        :value="lastMonth"
-                        :items="monthOpt"
-                        rule="Month is required"
-                        label="Month"
-                        @onChange="genLastDateOpt"
-                        ></Select>
-                    </v-col>
-
-                    <v-col>
-                        <Select
-                        :value="lastDay"
-                        :items="lastDateOpt"
-                        rule="Date is required"
-                        label="Date"
-                        @onChange="lastDay=$event"
-                        ></Select>
+                        <v-menu
+                            v-model="menu"
+                            :close-on-content-click="false"
+                            :nudge-right="40"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="auto">
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-text-field
+                                    v-model="dateRangeText"
+                                    label="Picker without buttons"
+                                    prepend-icon="edit_calendar"
+                                    readonly
+                                    v-bind="attrs"
+                                    v-on="on"
+                                ></v-text-field>
+                            </template>
+                            <v-date-picker
+                                v-model="dates"
+                                year-icon="mdi-calendar-blank"
+                                prev-icon="arrow_back_ios"
+                                next-icon="arrow_forward_ios"
+                                range
+                                :min="minDay"
+                                :max="today"
+                                @input="menu = false"
+                            ></v-date-picker>
+                        </v-menu>
                     </v-col>
 
                     <v-col
@@ -67,23 +52,25 @@
 
             <v-card v-if="dataShow.length > 0"
                 class="table-card">
-                <table>
-                    <tr>
-                        <th>Name</th>
-                        <th
-                        v-for="(column, index) in dateRange"
-                        v-bind:key="index">{{column.date}} {{column.monthShow}}</th>
-                    </tr>
-                    <tr
-                    v-for="(name, n) in nameList"
-                    v-bind:key="n">
-                        <td class="name">{{name}}</td>
-                        <td
-                        v-for="(check, m) in dateRange"
-                        v-bind:key="m"><v-icon
-                        :color="dataShow[n][m]==0?'error':(dataShow[n][m]==1?'green':'orange')">{{dataShow[n][m]==0?"close":(dataShow[n][m]==1?"done":"access_alarm")}}</v-icon></td>
-                    </tr>
-                </table>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <tr>
+                            <th>Name</th>
+                            <th
+                            v-for="(column, index) in dateRange"
+                            v-bind:key="index">{{column.date}} {{column.monthShow}}</th>
+                        </tr>
+                        <tr
+                        v-for="(name, n) in nameList"
+                        v-bind:key="n">
+                            <td class="name">{{name}}</td>
+                            <td
+                            v-for="(check, m) in dateRange"
+                            v-bind:key="m"><v-icon
+                            :color="dataShow[n][m]==0?'error':(dataShow[n][m]==1?'green':'orange')">{{dataShow[n][m]==0?"close":(dataShow[n][m]==1?"done":"access_alarm")}}</v-icon></td>
+                        </tr>
+                    </table>
+                </div> 
             </v-card>
         </v-card>
     </div>
@@ -98,7 +85,7 @@ import Select from '../components/Select.vue'
 
 export default {
     components: {
-        Select
+        // Select
     },
     beforeMount() {
         this.genMonthOpt()
@@ -117,8 +104,17 @@ export default {
         dateRange: [],
         dataShow: [],
         year: moment().format("YYYY"),
-        isLoading: false
+        isLoading: false,
+        dates: [moment().subtract(30, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')],
+        menu: false,
+        today: moment().format('YYYY-MM-DD'),
+        minDay: moment().startOf('year').format('YYYY-MM-DD')
     }),
+    computed: {
+        dateRangeText () {
+            return this.dates.join(' - ')
+        }
+    },
     methods: {
         getName () {
             // tabs/sheetName
@@ -170,19 +166,43 @@ export default {
         validate () {
             this.dataShow = []
             this.dateRange = []
-            if (this.lastMonth < this.firstMonth){
-                alert("incorrect range")
-            }else{
-                if (this.firstMonth == this.lastMonth){
-                    if (this.lastDay < this.firstDay){
-                        alert("incorrect range")
-                    }else{
-                        this.getData()
-                    }
+            let firstArr, secondArr
+            firstArr = this.dates[0].split("-")
+            if (this.dates.length > 1){
+                secondArr = this.dates[1].split("-")
+                if (firstArr[1] > secondArr[1]){
+                    this.firstDay = parseInt(secondArr[2])
+                    this.firstMonth = parseInt(secondArr[1])
+                    this.lastDay = parseInt(firstArr[2])
+                    this.lastMonth = parseInt(firstArr[1])
                 }else{
-                    this.getData()
+                    if (firstArr[1] == secondArr[1]){
+                        if (firstArr[2] > secondArr[2]){
+                            this.firstDay = parseInt(secondArr[2])
+                            this.firstMonth = parseInt(secondArr[1])
+                            this.lastDay = parseInt(firstArr[2])
+                            this.lastMonth = parseInt(firstArr[1])
+                        }else{
+                            this.firstDay = parseInt(firstArr[2])
+                            this.firstMonth = parseInt(firstArr[1])
+                            this.lastDay = parseInt(secondArr[2])
+                            this.lastMonth = parseInt(secondArr[1])
+                        }
+                    }else{
+                        this.firstDay = parseInt(firstArr[2])
+                        this.firstMonth = parseInt(firstArr[1])
+                        this.lastDay = parseInt(secondArr[2])
+                        this.lastMonth = parseInt(secondArr[1])
+                    }
                 }
+            }else{
+                this.firstDay = parseInt(firstArr[2])
+                this.firstMonth = parseInt(firstArr[1])
+                this.lastDay = parseInt(firstArr[2])
+                this.lastMonth = parseInt(firstArr[1])
             }
+            console.log(firstArr,secondArr);
+            this.getData()
         },
         async getData () {
             this.data = []
@@ -375,10 +395,13 @@ table {
     padding: 5px;
 }
 th {
+    width: 28px;
+    height: 48px;
     margin: 2px;
 }
 td {
     margin: 2px;
+    width: 28px;
     text-align: center;
 }
 
