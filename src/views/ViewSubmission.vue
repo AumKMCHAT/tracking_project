@@ -118,7 +118,11 @@ export default {
     }),
     computed: {
         dateRangeText () {
-            return this.dates.join(' - ')
+            let formatted = [];
+            for (const date of this.dates){
+                formatted.push(moment(`${date}`).format('D MMMM YYYY'))
+            }
+            return formatted.join(' - ')
         }
     },
     methods: {
