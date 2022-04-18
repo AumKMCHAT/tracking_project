@@ -1,10 +1,14 @@
 <template>
     <div class="pa-5 main-layout">
         <v-card class="form-card">
-            <v-card-title class="text-h4 pl-3">Submission</v-card-title>
+            <v-card-title class="text-h5
+            text-sm-h4
+            text-xl-h4
+            pl-3">
+            Submission</v-card-title>
             <v-form>
                 <v-row class="ma-2">
-                    <v-col>
+                    <v-col cols="12" sm="11">
                         <v-menu
                             v-model="menu"
                             :close-on-content-click="false"
@@ -15,7 +19,7 @@
                             <template v-slot:activator="{ on, attrs }">
                                 <v-text-field
                                     v-model="dateRangeText"
-                                    label="Picker without buttons"
+                                    label="Please select dates"
                                     prepend-icon="edit_calendar"
                                     readonly
                                     v-bind="attrs"
@@ -27,6 +31,7 @@
                                 year-icon="mdi-calendar-blank"
                                 prev-icon="arrow_back_ios"
                                 next-icon="arrow_forward_ios"
+                                full-width
                                 range
                                 :min="minDay"
                                 :max="today"
@@ -36,8 +41,10 @@
                     </v-col>
 
                     <v-col
-                    cols="auto"
-                    align-self="center">
+                    cols="12"
+                    align-self="center"
+                    align="right"
+                    sm="1">
                         <v-btn
                         :loading="isLoading"
                         outlined
@@ -201,7 +208,6 @@ export default {
                 this.lastDay = parseInt(firstArr[2])
                 this.lastMonth = parseInt(firstArr[1])
             }
-            console.log(firstArr,secondArr);
             this.getData()
         },
         async getData () {
@@ -228,7 +234,6 @@ export default {
                     //get in range
                     res = await axios.get(sheetUrl + `/tabs/data_${this.year}/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
                     this.data = res.data
-                    // console.log(this.data);
                     this.filterData()
                     this.findRange()
                     this.checkData()
@@ -270,7 +275,6 @@ export default {
                                 monthShow: moment(`${this.lastMonth}`).format('MMM')})
                             }
                         }
-                        // console.log(this.dateRange);
                     }else{
                         //find the number of days
                         let monthDiff,d,m,dow;
@@ -319,7 +323,6 @@ export default {
                 }
             }
             this.data = a
-            // console.log(a);
         },
         checkData () {
             this.dataShow = []
@@ -368,8 +371,8 @@ export default {
     justify-items: center;
 }
 .form-card {
-    margin: 20px !important;
-    padding: 10px !important;
+    margin: 10px !important;
+    padding: 7px !important;
     box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
     border-radius: 12px !important;
 }

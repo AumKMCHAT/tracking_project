@@ -19,7 +19,7 @@
             lazy-validation
             >
                 <v-row>
-                    <v-col cols="4">
+                    <v-col cols="12" sm="4">
                         <Select
                         :value="name"
                         :items="formattedNameOpt"
@@ -31,7 +31,7 @@
                         ></Select>
                     </v-col>
 
-                    <v-col>
+                    <v-col cols="12" sm="8">
                         <Select
                         :value="department"
                         :items="allDepartments"
@@ -59,10 +59,14 @@
                 v-bind:key="index">
                     <v-row> 
                         <v-col 
-                        cols="auto"
+                        cols="12"
+                        sm="auto"
                         align-self="center"
+                        class="pa-1"
                         >{{index+1}}.</v-col>
-                        <v-col>
+                        <v-col
+                        cols="9"
+                        sm="5">
                             <AutoComplete
                             :value="selectedProject.project"
                             :items="allProjects"
@@ -71,7 +75,9 @@
                             @onChange="selectedProject.project=$event"></AutoComplete>
                         </v-col>
 
-                        <v-col>
+                        <v-col
+                        cols="9"
+                        sm="4">
                             <AutoComplete
                             :value="selectedProject.work"
                             :items="formattedWorkOpt"
@@ -83,7 +89,8 @@
                         </v-col>
 
                         <v-col 
-                        cols="auto"
+                        cols="2"
+                        sm="2"
                         align-self="center">
                             <v-btn
                             :disabled="selectedProjects.length <= 1"
@@ -105,35 +112,36 @@
                         :disabled="checkWorks()"
                         outlined
                         color="primary"
-                        class="mb-4 mt-3 mr-4 add-btn"
+                        class="mb-2 mt-3 mr-3 add-btn"
                         small
                         @click="addField">Add more work</v-btn>
 
                         <v-btn
                         outlined
                         color="warning"
-                        class="mb-4 mt-3 clearC-btn"
+                        class="mb-2 mt-3 clearC-btn"
                         small
                         @click="clearCache"
                         >Clear cache</v-btn>
                     </v-col>
                 </v-row>
 
-                <v-row> </v-row>
-                
-                <v-layout justify-end>
-                    <v-flex shrink>
-                        <v-btn color="error"
-                        class="mr-3"
-                        rounded
-                        @click="clear">Clear</v-btn>
+                <v-row> 
+                    <v-layout justify-end>
+                        <v-flex shrink>
+                            <v-btn color="error"
+                            class="mr-2 mb-2 mt-1"
+                            rounded
+                            @click="clear">Clear</v-btn>
 
-                        <v-btn color="success" 
-                        :loading="isSubmitting"
-                        rounded
-                        @click="validate">Submit</v-btn> 
-                    </v-flex>
-                </v-layout> 
+                            <v-btn color="success" 
+                            :loading="isSubmitting"
+                            class="mb-2 mt-1"
+                            rounded
+                            @click="validate">Submit</v-btn> 
+                        </v-flex>
+                    </v-layout> 
+                </v-row>
 
             </v-form>
             </v-container>
