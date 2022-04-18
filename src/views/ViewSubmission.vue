@@ -176,30 +176,16 @@ export default {
             firstArr = this.dates[0].split("-")
             if (this.dates.length > 1){
                 secondArr = this.dates[1].split("-")
-                if (firstArr[1] > secondArr[1]){
+                if (moment(`${this.dates[0]}`).isBefore(`${this.dates[1]}`, 'day')){
+                    this.firstDay = parseInt(firstArr[2])
+                    this.firstMonth = parseInt(firstArr[1])
+                    this.lastDay = parseInt(secondArr[2])
+                    this.lastMonth = parseInt(secondArr[1])
+                }else{
                     this.firstDay = parseInt(secondArr[2])
                     this.firstMonth = parseInt(secondArr[1])
                     this.lastDay = parseInt(firstArr[2])
                     this.lastMonth = parseInt(firstArr[1])
-                }else{
-                    if (firstArr[1] == secondArr[1]){
-                        if (firstArr[2] > secondArr[2]){
-                            this.firstDay = parseInt(secondArr[2])
-                            this.firstMonth = parseInt(secondArr[1])
-                            this.lastDay = parseInt(firstArr[2])
-                            this.lastMonth = parseInt(firstArr[1])
-                        }else{
-                            this.firstDay = parseInt(firstArr[2])
-                            this.firstMonth = parseInt(firstArr[1])
-                            this.lastDay = parseInt(secondArr[2])
-                            this.lastMonth = parseInt(secondArr[1])
-                        }
-                    }else{
-                        this.firstDay = parseInt(firstArr[2])
-                        this.firstMonth = parseInt(firstArr[1])
-                        this.lastDay = parseInt(secondArr[2])
-                        this.lastMonth = parseInt(secondArr[1])
-                    }
                 }
             }else{
                 this.firstDay = parseInt(firstArr[2])

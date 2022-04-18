@@ -10,7 +10,7 @@
                 :type="alertType"
                 @input="submitted=false">{{alertMsg}}</v-alert>
 
-            <v-card-title class="text-h4 pl-3"
+            <v-card-title class="text-h5 text-sm-h4 pl-3"
             >Company Project</v-card-title>
             <v-container>
             <v-form 
@@ -59,15 +59,16 @@
                 v-bind:key="index">
                     <v-row> 
                         <v-col 
-                        cols="12"
+                        cols="1"
                         sm="1"
                         align-self="center"
                         align="center"
-                        class="pa-1"
+                        class="pa-0"
                         >{{index+1}}.</v-col>
                         <v-col
                         cols="9"
-                        sm="5">
+                        sm="5"
+                        align="right">
                             <AutoComplete
                             :value="selectedProject.project"
                             :items="allProjects"
@@ -77,8 +78,9 @@
                         </v-col>
 
                         <v-col
-                        cols="9"
-                        sm="5">
+                        cols="10"
+                        sm="5"
+                        >
                             <AutoComplete
                             :value="selectedProject.work"
                             :items="formattedWorkOpt"
@@ -93,7 +95,7 @@
                         cols="2"
                         sm="1"
                         align-self="center"
-                        align="center">
+                        align="right">
                             <v-btn
                             :disabled="selectedProjects.length <= 1"
                             outlined
