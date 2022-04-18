@@ -62,7 +62,7 @@
                 <div style="overflow-x:auto;">
                     <table>
                         <tr>
-                            <th>Name</th>
+                            <th class="pin-col">Name</th>
                             <th
                             v-for="(column, index) in dateRange"
                             v-bind:key="index">{{column.date}} {{column.monthShow}}</th>
@@ -70,7 +70,7 @@
                         <tr
                         v-for="(name, n) in nameList"
                         v-bind:key="n">
-                            <td class="name">{{name}}</td>
+                            <td class="name pin-col">{{name}}</td>
                             <td
                             v-for="(check, m) in dateRange"
                             v-bind:key="m"><v-icon
@@ -366,6 +366,7 @@ export default {
     justify-content: center;
     box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.25) !important;
     margin: 20px !important;
+    padding-left: 70px !important;
 }
 .main-layout {
     height: 100%;
@@ -377,9 +378,15 @@ export default {
 .name {
     text-align: left;
 }
+.pin-col {
+    width: auto; 
+    position: absolute;
+    margin-left: -70px;
+}
 table {
     width: auto;
     margin: 10px;
+    margin-left: 3px;
     padding: 5px;
 }
 th {
