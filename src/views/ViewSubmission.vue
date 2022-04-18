@@ -88,11 +88,10 @@
 import moment from 'moment'
 import axios from 'axios'
 import { sheetUrl } from '../store/constants'
-import Select from '../components/Select.vue'
 
 export default {
     components: {
-        // Select
+
     },
     beforeMount() {
         this.genMonthOpt()

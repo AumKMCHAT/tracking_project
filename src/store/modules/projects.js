@@ -4,10 +4,10 @@ const state = {
 const getters = {}
 const actions = {}
 const mutations = {
-    setName(state, list) {
+    setProjects(state, list) {
         state.projectsName = list
     },
-    clearName(state, list) {
+    clearProjects(state, list) {
         state.projectsName = []
     }
 }

@@ -1,6 +1,6 @@
 <template>
     <div class="pa-5 main-layout fill-height">
-        <v-card class="pa-5 custom-card" >
+        <v-card class="pa-5 custom-card" width="800">
             <v-alert class="col-12"
                 dense dismissible
                 close-icon="close"
@@ -60,8 +60,9 @@
                     <v-row> 
                         <v-col 
                         cols="12"
-                        sm="auto"
+                        sm="1"
                         align-self="center"
+                        align="center"
                         class="pa-1"
                         >{{index+1}}.</v-col>
                         <v-col
@@ -77,7 +78,7 @@
 
                         <v-col
                         cols="9"
-                        sm="4">
+                        sm="5">
                             <AutoComplete
                             :value="selectedProject.work"
                             :items="formattedWorkOpt"
@@ -90,8 +91,9 @@
 
                         <v-col 
                         cols="2"
-                        sm="2"
-                        align-self="center">
+                        sm="1"
+                        align-self="center"
+                        align="center">
                             <v-btn
                             :disabled="selectedProjects.length <= 1"
                             outlined
@@ -393,7 +395,7 @@ export default {
                             this.dateOpt.splice(i,1)
                         }
                     }
-                    this.$store.commit("projects/setName", this.selectedProjects)
+                    this.$store.commit("projects/setProjects", this.selectedProjects)
                     for (let i = 0;i < this.projectsName.length;i++){
                         if (this.selectedProjects[i].project != '' && this.selectedProjects[i].work != ''){
                             this.selectedProjects[i].project = this.projectsName[i].project 
@@ -501,7 +503,7 @@ export default {
         clearCache () {
             if (confirm("Do you want to clear all cache?")){
                 this.$store.commit("employee/clearName")
-                this.$store.commit("projects/clearName")
+                this.$store.commit("projects/clearProjects")
                 this.name = ' '
                 this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
                 this.selectedDate = ' '
