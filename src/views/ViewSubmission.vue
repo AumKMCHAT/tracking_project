@@ -1,6 +1,6 @@
 <template>
     <div class="pa-5 main-layout">
-        <v-card class="form-card">
+        <v-card class="form-card pa-4">
             <v-card-title class="text-h5
             text-sm-h4
             text-xl-h4
@@ -8,7 +8,7 @@
             Submission</v-card-title>
             <v-form>
                 <v-row class="ma-2">
-                    <v-col cols="12" sm="11">
+                    <v-col cols="12" sm="12" md="11">
                         <v-menu
                             v-model="menu"
                             :close-on-content-click="false"
@@ -42,9 +42,10 @@
 
                     <v-col
                     cols="12"
+                    sm="12"
+                    md="1"
                     align-self="center"
-                    align="right"
-                    sm="1">
+                    align="right">
                         <v-btn
                         :loading="isLoading"
                         outlined

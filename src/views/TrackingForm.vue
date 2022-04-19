@@ -323,7 +323,7 @@ export default {
                     if (this.employeeName){
                         this.name = this.employeeName
                         for (let i = 0;i < this.projectsName.length;i++){
-                            this.selectedProjects[i].project = this.projectsName[i].project 
+                            this.selectedProjects[i] = this.projectsName[i]
                         }
                         this.findDepartment()
                         this.genDateOpt()
