@@ -111,7 +111,8 @@
                 </div>
 
                 <v-row>
-                    <v-col>
+                    <v-col
+                    align-self="center">
                         <v-btn
                         :disabled="checkWorks()"
                         outlined
@@ -119,32 +120,43 @@
                         class="mb-2 mt-3 mr-3 add-btn"
                         small
                         @click="addField">Add more work</v-btn>
+                    </v-col>
 
-                        <v-btn
-                        outlined
-                        color="warning"
-                        class="mb-2 mt-3 clearC-btn"
-                        small
-                        @click="clearCache"
-                        >Clear cache</v-btn>
+                    <v-col
+                    align-self="center"
+                    align="right"
+                    :class="this.workSum>0?'warning--text':(this.workSum==0?'success--text':'error--text') ">
+                        <i>Remaining works: {{this.workSum}}</i>
                     </v-col>
                 </v-row>
 
                 <v-row> 
-                    <v-layout justify-end>
-                        <v-flex shrink>
-                            <v-btn color="error"
-                            class="mr-2 mb-2 mt-1"
-                            rounded
-                            @click="clear">Clear</v-btn>
+                    <v-col>
+                        <v-btn
+                        text
+                        plain
+                        color="error"
+                        class="mb-2 mt-3 clearC-btn"
+                        small
+                        @click="clearCache"
+                        ><u>Clear cache</u></v-btn>
+                    </v-col>
+                    <v-col>
+                        <v-layout justify-end>
+                            <v-flex shrink>
+                                <v-btn color="error"
+                                class="mr-2 mb-2 mt-1"
+                                rounded
+                                @click="clear">Clear</v-btn>
 
-                            <v-btn color="success" 
-                            :loading="isSubmitting"
-                            class="mb-2 mt-1"
-                            rounded
-                            @click="validate">Submit</v-btn> 
-                        </v-flex>
-                    </v-layout> 
+                                <v-btn color="success" 
+                                :loading="isSubmitting"
+                                class="mb-2 mt-1"
+                                rounded
+                                @click="validate">Submit</v-btn> 
+                            </v-flex>
+                        </v-layout> 
+                    </v-col>
                 </v-row>
 
             </v-form>
@@ -193,7 +205,8 @@ export default {
         alertType: "success",
         alertMsg: "Submitted",
         alertIcon: "check",
-        day: ''
+        day: '',
+        workSum: ''
     }),
     computed: {
         formattedDateOpt () {
@@ -289,6 +302,7 @@ export default {
             for (let i = 0; i<this.selectedProjects.length; i++){
                 sum = sum + this.selectedProjects[i].work
             }
+            this.workSum = 1-sum
             if (sum >= 1){
                 return true
             }else{
@@ -536,7 +550,7 @@ export default {
     color: #ffff !important;
 }
 .clearC-btn:hover {
-    background: #ff9233;
+    background: #FF605D;
     color: #ffff !important;
 }
 .main-layout {

@@ -372,6 +372,7 @@ export default {
     box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.25) !important;
     margin: 20px !important;
     padding-left: 70px !important;
+    border-radius: 20px !important;
 }
 .main-layout {
     height: 100%;
@@ -395,13 +396,13 @@ table {
     padding: 5px;
 }
 th {
-    width: 28px;
+    width: 30px;
     height: 48px;
-    margin: 2px;
+    padding: 0 2px;
 }
 td {
-    margin: 2px;
-    width: 28px;
+    width: 30px;
+    padding: 0 2px;
     text-align: center;
 }
 
