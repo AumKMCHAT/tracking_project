@@ -1,6 +1,6 @@
 <template>
-    <div class="pa-5 main-layout">
-        <v-card class="form-card pa-4">
+    <div :class="isMobile?'mobile-layout':'normal-layout'">
+        <v-card :class="isMobile?'mobile-card':'normal-card'">
             <v-card-title class="text-h5
             text-sm-h4
             text-xl-h4
@@ -98,6 +98,9 @@ export default {
         this.genMonthOpt()
         this.getName()
     },
+    mounted() {
+        this.isMobile = this.$vuetify.breakpoint.mobile
+    },
     data: () => ({
         nameList: [],
         firstDay: '',
@@ -115,7 +118,8 @@ export default {
         dates: [moment().subtract(30, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')],
         menu: false,
         today: moment().format('YYYY-MM-DD'),
-        minDay: moment().startOf('year').format('YYYY-MM-DD')
+        minDay: moment().startOf('year').format('YYYY-MM-DD'),
+        isMobile: null,
     }),
     computed: {
         dateRangeText () {
@@ -360,11 +364,15 @@ export default {
 .icon {
     justify-items: center;
 }
-.form-card {
+.normal-card {
     margin: 10px !important;
     padding: 7px !important;
     box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
     border-radius: 12px !important;
+}
+.mobile-card {
+    padding: 7px !important;
+    box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
 }
 .table-card {
     text-align: center;
@@ -374,11 +382,17 @@ export default {
     padding-left: 70px !important;
     border-radius: 20px !important;
 }
-.main-layout {
+.normal-layout {
     height: 100%;
     display: 80%;
     justify-content: center;
     align-content: center;
+    background: radial-gradient(circle, rgba(249,254,255,0.14469537815126055) 0%, rgba(204,233,233,1) 100%);
+}
+.mobile-layout {
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
     background: radial-gradient(circle, rgba(249,254,255,0.14469537815126055) 0%, rgba(204,233,233,1) 100%);
 }
 .name {

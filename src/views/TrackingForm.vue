@@ -1,6 +1,6 @@
 <template>
-    <div class="pa-5 main-layout fill-height">
-        <v-card class="pa-5 custom-card" width="800">
+    <div class="pa-4 main-layout fill-height">
+        <v-card :class="isMobile?'mobileCustom-card':'custom-card'" width="800">
             <v-alert class="col-12"
                 dense dismissible
                 close-icon="close"
@@ -55,9 +55,11 @@
                     </v-col>
                 </v-row>
 
+                <v-card
+                :class="isMobile?'project-card':'normal-card'">
                 <div v-for="(selectedProject, index) in selectedProjects" 
                 v-bind:key="index">
-                    <v-row> 
+                     <v-row class="pa-1 ma-0"> 
                         <v-col 
                         cols="1"
                         sm="1"
@@ -95,20 +97,31 @@
                         cols="2"
                         sm="1"
                         align-self="center"
-                        align="right">
+                        align="right"
+                        class="pa-1">
                             <v-btn
                             :disabled="selectedProjects.length <= 1"
                             outlined
                             color="error"
-                            x-small class="del-btn"
+                            x-small 
+                            class="del-btn"
                             fab
                             @click="removeField(index)">
                             <v-icon >remove</v-icon></v-btn>
                         </v-col>
-                        
                     </v-row>
-
                 </div>
+                </v-card>
+
+                <!-- <v-row
+                class="ma-0">
+                    <v-col
+                    align-self="center"
+                    align="right"
+                    :class="this.workSum>0?'warning--text pa-0':(this.workSum==0?'success--text pa-0':'error--text pa-0') ">
+                        <i>Remaining works: {{this.workSum}}</i>
+                    </v-col>
+                </v-row> -->
 
                 <v-row>
                     <v-col
@@ -131,7 +144,10 @@
                 </v-row>
 
                 <v-row> 
-                    <v-col>
+                    <v-col
+                    cols="auto"
+                    align-self="center"
+                    >
                         <v-btn
                         text
                         plain
@@ -182,6 +198,9 @@ export default {
     beforeMount() {
         this.getName()
     },
+    mounted() {
+        this.isMobile = this.$vuetify.breakpoint.mobile
+    },
     data: () => ({
         nameList: [],
         nameData: [],
@@ -206,7 +225,8 @@ export default {
         alertMsg: "Submitted",
         alertIcon: "check",
         day: '',
-        workSum: ''
+        workSum: '',
+        isMobile: null,
     }),
     computed: {
         formattedDateOpt () {
@@ -536,6 +556,12 @@ export default {
 .custom-card {
     box-shadow: 3px 16px 43px rgba(0, 0, 0, 0.35) !important;
     border-radius: 12px !important;
+    padding: 20px;
+}
+.mobileCustom-card {
+    box-shadow: 3px 16px 43px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 12px !important;
+    padding: 5px;
 }
 .del-btn:hover {
     background: #FF605D;
@@ -558,5 +584,13 @@ export default {
     justify-content: center;
     align-items: center;
     background: radial-gradient(circle, rgba(249,254,255,0.14469537815126055) 0%, rgba(204,233,233,1) 100%);
+}
+.project-card {
+    padding: 5px !important;
+    box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.3) !important;
+    border-radius: 15px !important;
+}
+.normal-card {
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.0) !important;
 }
 </style>
