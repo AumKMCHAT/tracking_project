@@ -1,12 +1,13 @@
 <template>
     <div class="main-layout">
       <v-card :class="isMobile?'mobile-form':'normal-form'">
-        <h2>TO THE MOON</h2>
+        <v-card-title class="text-h5 text-sm-h4 pl-0"
+            >TO THE MOON</v-card-title>
         <v-row 
         class="pa-2">
           <v-col
           cols="12"
-          sm="11">
+          md="11">
             <v-select
               v-model="selectedProjects"
               :items="projects"
@@ -17,35 +18,37 @@
 
           <v-col
           cols="12"
-          sm="1"
+          md="1"
           align-self="center"
-          align="right">
+          align="right"
+          class="pa-0 pb-6">
             <v-btn
               :loading="isLoading"
               outlined
               rounded
+              block
               color="primary"
               @click="show">Show</v-btn>
           </v-col>
         </v-row> 
-      </v-card>
-      
-      <v-card
-      :class="isMobile?'mobile-show d-flex flex-wrap':'normal-show d-flex flex-wrap'"
-      v-if="series.length > 0"
-      >
-        <v-card
-        v-for="(serie, index) in series" 
-        v-bind:key="index"
-        :class="isMobile?'mobile-card':'normal-card'">
-        <h3>{{projectsData[index].Project}} {{serie[4].data[0][0]}}%</h3>
-              <apexchart 
-                    height="150"
-                    type="scatter" 
-                    :options="options" 
-                    :series="serie">
-                </apexchart>  
-        </v-card>
+
+        <div
+        :class="isMobile?'mobile-show d-flex flex-wrap':'normal-show d-flex flex-wrap justify-space-between'"
+        v-if="series.length > 0"
+        >
+          <v-card
+          v-for="(serie, index) in series" 
+          v-bind:key="index"
+          :class="isMobile?'mobile-card':'normal-card'">
+          <h3>{{projectsData[index].Project}} {{serie[4].data[0][0]}}%</h3>
+                <apexchart 
+                      height="150"
+                      type="scatter" 
+                      :options="options" 
+                      :series="serie">
+                  </apexchart>  
+          </v-card>
+        </div>
       </v-card>
     </div>
     
@@ -61,13 +64,18 @@ export default {
     this.getProjects()
     this.getData()
   },
-  mounted() {
-    this.isMobile = this.$vuetify.breakpoint.mobile
+  computed: {
+    isMobile() {
+      return this.$vuetify.breakpoint.mobile
+    }
   },
   data: () => ({
     options: {
       chart: {
-        id: 'vuechart-example'
+        id: 'vuechart-example',
+        toolbar: {
+          show: false
+        }
       },
       xaxis: {
         tickAmount: 10,
@@ -94,7 +102,6 @@ export default {
     allData: [],
     projectsData: [],
     series: [],
-    isMobile: null,
     row: 0
   }),
   methods:{
@@ -157,39 +164,35 @@ export default {
 }
 .normal-form {
   margin: 20px !important;
-  padding: 7px !important;
+  padding: 20px !important;
   box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
   border-radius: 12px !important;
 }
 .mobile-form {
   margin: 10px !important;
-  padding: 5px !important;
+  padding: 15px !important;
   box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
   border-radius: 12px !important;
 }
 .normal-show {
-  margin: 20px !important;
-  padding: 7px !important;
-  box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
-  border-radius: 12px !important;
+  margin: 0px;
 }
 .mobile-show {
-  margin: 10px !important;
-  padding: 5px !important;
-  box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
-  border-radius: 12px !important;
+  margin: 5px;
 }
 .normal-card{
   margin: 15px;
+  margin-left: 0px;
+  margin-right: 0px;
   border-radius: 20px !important;
-  padding: 10px;
-  box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.25) !important;
-  width: 48%;
+  padding: 15px;
+  box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.3) !important;
+  width: 49%;
 }
 .mobile-card{
-  margin: 10px;
+  margin-bottom: 20px;
   border-radius: 20px !important;
-  padding: 5px;
+  padding: 15px;
   box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.35) !important;
   width: 100%;
 }

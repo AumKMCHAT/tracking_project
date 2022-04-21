@@ -1,5 +1,5 @@
 <template>
-    <div class="pa-4 main-layout fill-height">
+    <div class="pa-3 main-layout fill-height">
         <v-card :class="isMobile?'mobileCustom-card':'custom-card'" width="800">
             <v-alert class="col-12"
                 dense dismissible
@@ -56,7 +56,7 @@
                 </v-row>
 
                 <v-card
-                :class="isMobile?'project-card':'normal-card'">
+                :class="isMobile?'project-card mt-3 mb-2':'normal-card'">
                 <div v-for="(selectedProject, index) in selectedProjects" 
                 v-bind:key="index">
                      <v-row class="pa-1 ma-0"> 
@@ -112,17 +112,6 @@
                     </v-row>
                 </div>
                 </v-card>
-
-                <!-- <v-row
-                class="ma-0">
-                    <v-col
-                    align-self="center"
-                    align="right"
-                    :class="this.workSum>0?'warning--text pa-0':(this.workSum==0?'success--text pa-0':'error--text pa-0') ">
-                        <i>Remaining works: {{this.workSum}}</i>
-                    </v-col>
-                </v-row> -->
-
                 <v-row>
                     <v-col
                     align-self="center">
@@ -130,7 +119,7 @@
                         :disabled="checkWorks()"
                         outlined
                         color="primary"
-                        class="mb-2 mt-3 mr-3 add-btn"
+                        class="mb-2 mt-4 mr-3 add-btn"
                         small
                         @click="addField">Add more work</v-btn>
                     </v-col>
@@ -138,7 +127,7 @@
                     <v-col
                     align-self="center"
                     align="right"
-                    :class="this.workSum>0?'warning--text':(this.workSum==0?'success--text':'error--text') ">
+                    :class="this.workSum>0?'warning--text mt-3':(this.workSum==0?'success--text mt-3':'error--text mt-3') ">
                         <i>Remaining works: {{this.workSum}}</i>
                     </v-col>
                 </v-row>
@@ -150,10 +139,9 @@
                     >
                         <v-btn
                         text
-                        plain
                         color="error"
                         class="mb-2 mt-3 clearC-btn"
-                        small
+                        x-small
                         @click="clearCache"
                         ><u>Clear cache</u></v-btn>
                     </v-col>
@@ -198,9 +186,6 @@ export default {
     beforeMount() {
         this.getName()
     },
-    mounted() {
-        this.isMobile = this.$vuetify.breakpoint.mobile
-    },
     data: () => ({
         nameList: [],
         nameData: [],
@@ -226,7 +211,6 @@ export default {
         alertIcon: "check",
         day: '',
         workSum: '',
-        isMobile: null,
     }),
     computed: {
         formattedDateOpt () {
@@ -272,6 +256,9 @@ export default {
                 text: `(${this.showDepartment(item)}) ${item}`,
                 value: item
             }))
+        },
+        isMobile() {
+            return this.$vuetify.breakpoint.mobile
         }
     },
     methods: {
@@ -587,8 +574,9 @@ export default {
 }
 .project-card {
     padding: 5px !important;
-    box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.3) !important;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.25) !important;
     border-radius: 15px !important;
+    background: #E9FFFF !important;
 }
 .normal-card {
     box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.0) !important;

@@ -8,7 +8,7 @@
             Submission</v-card-title>
             <v-form>
                 <v-row class="ma-2">
-                    <v-col cols="12" sm="12" md="11">
+                    <v-col cols="12" md="11">
                         <v-menu
                             v-model="menu"
                             :close-on-content-click="false"
@@ -18,6 +18,7 @@
                             min-width="auto">
                             <template v-slot:activator="{ on, attrs }">
                                 <v-text-field
+                                    dense
                                     v-model="dateRangeText"
                                     label="Please select dates"
                                     prepend-icon="edit_calendar"
@@ -42,14 +43,15 @@
 
                     <v-col
                     cols="12"
-                    sm="12"
                     md="1"
                     align-self="center"
-                    align="right">
+                    align="right"
+                    class="pt-0 pb-5">
                         <v-btn
                         :loading="isLoading"
                         outlined
                         rounded
+                        block
                         color="primary"
                         class="view-btn"
                         @click="validate">view</v-btn>
@@ -98,9 +100,6 @@ export default {
         this.genMonthOpt()
         this.getName()
     },
-    mounted() {
-        this.isMobile = this.$vuetify.breakpoint.mobile
-    },
     data: () => ({
         nameList: [],
         firstDay: '',
@@ -118,8 +117,7 @@ export default {
         dates: [moment().subtract(30, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')],
         menu: false,
         today: moment().format('YYYY-MM-DD'),
-        minDay: moment().startOf('year').format('YYYY-MM-DD'),
-        isMobile: null,
+        minDay: moment().startOf('year').format('YYYY-MM-DD')
     }),
     computed: {
         dateRangeText () {
@@ -128,6 +126,9 @@ export default {
                 formatted.push(moment(`${date}`).format('D MMMM YYYY'))
             }
             return formatted.join(' - ')
+        },
+        isMobile() {
+            return this.$vuetify.breakpoint.mobile
         }
     },
     methods: {
@@ -378,7 +379,7 @@ export default {
     text-align: center;
     justify-content: center;
     box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.25) !important;
-    margin: 20px !important;
+    margin: 10px !important;
     padding-left: 70px !important;
     border-radius: 20px !important;
 }
@@ -393,7 +394,6 @@ export default {
     height: 100%;
     margin: 0px;
     padding: 0px;
-    background: radial-gradient(circle, rgba(249,254,255,0.14469537815126055) 0%, rgba(204,233,233,1) 100%);
 }
 .name {
     text-align: left;
