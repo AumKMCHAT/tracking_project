@@ -40,7 +40,7 @@
           v-for="(serie, index) in series" 
           v-bind:key="index"
           :class="isMobile?'mobile-card':'normal-card'">
-          <h3>{{projectsData[index].Project}} {{serie[4].data[0][0]}}%</h3>
+          <h3>{{projectsData[index].Project}} {{serie[0].data[0][0]}}%</h3>
                 <apexchart 
                       height="150"
                       type="scatter" 
@@ -93,10 +93,13 @@ export default {
         tickAmount: 1,
         max: 1
       },
+      legend: {
+        show: true
+      }
       
     },
     isLoading: false,
-    Derpartments: ['DEV', 'QA', 'GRAPHIC', 'BA'],
+    Departments: ['DEV', 'QA', 'GRAPHIC', 'BA'],
     selectedProjects: [],
     projects: [],
     allData: [],
@@ -140,11 +143,11 @@ export default {
         for (const n of this.projectsData){
           sumDev = parseFloat(n.SeniorDEV) + parseFloat(n.JuniorDEV)
           arr = [
-        { name: 'DEV', data: [[sumDev,0.5]] },
-        { name: 'QA', data: [[parseFloat(n.QA),0.5]] },
-        { name: 'GRAPHIC', data: [[parseFloat(n.GRAPHIC),0.5]] },
+        { name: 'ALL', data: [[parseFloat(n.All),1]]},
         { name: 'BA', data: [[parseFloat(n.BA),0.5]] },
-        { name: 'ALL', data: [[parseFloat(n.All),1]]}]
+        { name: 'DEV', data: [[sumDev,0.5]] },
+        { name: 'GRAPHIC', data: [[parseFloat(n.GRAPHIC),0.5]] },
+        { name: 'QA', data: [[parseFloat(n.QA),0.5]] }]
           this.series.push(arr)
         }
         this.row = Math.ceil(this.series.length/2)

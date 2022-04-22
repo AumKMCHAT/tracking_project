@@ -8,7 +8,7 @@
             Submission</v-card-title>
             <v-form>
                 <v-row class="ma-2">
-                    <v-col cols="12" md="11">
+                    <!-- <v-col cols="12" md="11">
                         <v-menu
                             v-model="menu"
                             :close-on-content-click="false"
@@ -39,7 +39,21 @@
                                 @input="menu = false"
                             ></v-date-picker>
                         </v-menu>
+                    </v-col> -->
+
+
+                    <v-col
+                    cols="12" md="11">
+                    <date-picker 
+                    v-model="dates" 
+                    value-type="format" 
+                    format="YYYY-MM-DD"
+                    range 
+                    placeholder="Select date range"
+                    :disabled-date="disabledDate"
+                    ></date-picker>
                     </v-col>
+
 
                     <v-col
                     cols="12"
@@ -90,15 +104,20 @@
 <script>
 import moment from 'moment'
 import axios from 'axios'
+import DatePicker from 'vue2-datepicker';
+import 'vue2-datepicker/index.css';
 import { sheetUrl } from '../store/constants'
 
 export default {
     components: {
-
+        DatePicker 
     },
-    beforeMount() {
+    beforeMount () {
         this.genMonthOpt()
         this.getName()
+    },
+    mounted () {
+        this.validate()
     },
     data: () => ({
         nameList: [],
@@ -120,13 +139,6 @@ export default {
         minDay: moment().startOf('year').format('YYYY-MM-DD')
     }),
     computed: {
-        dateRangeText () {
-            let formatted = [];
-            for (const date of this.dates){
-                formatted.push(moment(`${date}`).format('D MMMM YYYY'))
-            }
-            return formatted.join(' - ')
-        },
         isMobile() {
             return this.$vuetify.breakpoint.mobile
         }
@@ -348,7 +360,22 @@ export default {
                     }
                 }
             }
-        }
+        },
+        disabledDate(date) {
+            const today = new Date();
+            const firstDay = new Date(date.getFullYear(), 0, 1);
+            today.setHours(0, 0, 0, 0);
+            firstDay.setHours(0, 0, 0, 0);
+
+            return date > today || new Date().getFullYear() > date.getFullYear() ;
+        },
+        // dateRangeText (date) {
+        //     // return this.dates.map(item => ({
+        //     //     text: `${moment(`${item}`).format('D MMMM YYYY')}`,
+        //     //     value: item
+        //     // }))
+        //     return moment(`${date}`).format('D MMMM YYYY')
+        // },
     }
 }
 </script>
@@ -366,8 +393,8 @@ export default {
     justify-items: center;
 }
 .normal-card {
-    margin: 10px !important;
-    padding: 7px !important;
+    margin: 20px !important;
+    padding: 20px !important;
     box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
     border-radius: 12px !important;
 }

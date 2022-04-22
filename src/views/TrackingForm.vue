@@ -79,36 +79,30 @@
                             @onChange="selectedProject.project=$event"></AutoComplete>
                         </v-col>
 
-                        <v-col
-                        cols="10"
-                        sm="5"
+                        <div
+                        class="d-flex flex-wrap align-center work-opt"
                         >
-                            <AutoComplete
-                            :value="selectedProject.work"
-                            :items="formattedWorkOpt"
-                            item-text="text"
-                            item-value="value"
-                            rules="Work is required!"
-                            label="Work"
-                            @onChange="selectedProject.work=$event"></AutoComplete>
-                        </v-col>
 
-                        <v-col 
-                        cols="2"
-                        sm="1"
-                        align-self="center"
-                        align="right"
-                        class="pa-1">
-                            <v-btn
-                            :disabled="selectedProjects.length <= 1"
-                            outlined
-                            color="error"
-                            x-small 
-                            class="del-btn"
-                            fab
-                            @click="removeField(index)">
-                            <v-icon >remove</v-icon></v-btn>
-                        </v-col>
+                                <AutoComplete
+                                :value="selectedProject.work"
+                                :items="formattedWorkOpt"
+                                item-text="text"
+                                item-value="value"
+                                rules="Work is required!"
+                                label="Work"
+                                @onChange="selectedProject.work=$event"></AutoComplete>
+                            
+                                <v-btn
+                                :disabled="selectedProjects.length <= 1"
+                                outlined
+                                color="error"
+                                x-small 
+                                class="del-btn ml-4"
+                                fab
+                                @click="removeField(index)">
+                                <v-icon >remove</v-icon></v-btn>
+
+                        </div>
                     </v-row>
                 </div>
                 </v-card>
@@ -128,7 +122,7 @@
                     align-self="center"
                     align="right"
                     :class="this.workSum>0?'warning--text mt-3':(this.workSum==0?'success--text mt-3':'error--text mt-3') ">
-                        <i>Remaining works: {{this.workSum}}</i>
+                        <i>Remaining works: {{this.remainingMsg}}</i>
                     </v-col>
                 </v-row>
 
@@ -176,6 +170,7 @@ import { sheetUrl } from '../store/constants'
 import Select from '../components/Select.vue'
 import AutoComplete from '../components/AutoComplete.vue'
 import {mapState} from 'vuex'
+import Swal from 'sweetalert2'
 
 export default {
     name: 'TrackingForm',
@@ -211,6 +206,7 @@ export default {
         alertIcon: "check",
         day: '',
         workSum: '',
+        remainingMsg: ''
     }),
     computed: {
         formattedDateOpt () {
@@ -279,6 +275,8 @@ export default {
                 if (sum == 1){
                     if (confirm("Do you want to submit?")){
                         this.submit()
+                    }else{
+                        this.isSubmitting = false
                     }
                 }else{
                     this.isSubmitting = false
@@ -309,7 +307,13 @@ export default {
             for (let i = 0; i<this.selectedProjects.length; i++){
                 sum = sum + this.selectedProjects[i].work
             }
-            this.workSum = 1-sum
+            this.workSum = 1 - sum
+            if (this.workSum < 0){
+                this.remainingMsg = `over ${-this.workSum}`
+            }else{
+                this.remainingMsg = `${this.workSum}`
+            }
+
             if (sum >= 1){
                 return true
             }else{
@@ -317,7 +321,7 @@ export default {
             }
         },
         getName () {
-            let dev = [], ba = [], graphic = []
+            let dev = [], ba = [], graphic = [], qa = []
             // tabs/sheetName
             axios.get(sheetUrl + '/tabs/nameSheet')
                 .then(res => {
@@ -333,6 +337,9 @@ export default {
                             case "GRAPHIC":
                                 graphic.push(n.name)
                                 break;
+                            case "QA":
+                                qa.push(n.name)
+                                break;
                             default:
                                 break;
                         }
@@ -340,7 +347,8 @@ export default {
                     dev.sort()
                     ba.sort()
                     graphic.sort()
-                    this.nameList = ba.concat(dev,graphic)
+                    qa.sort()
+                    this.nameList = ba.concat(dev,graphic,qa)
                     if (this.employeeName){
                         this.name = this.employeeName
                         for (let i = 0;i < this.projectsName.length;i++){
@@ -412,7 +420,7 @@ export default {
                     this.alertMsg = "Submitted!"
                     this.alertIcon = "check"
                     this.submitted = true
-                    //remove lasted submitted date option
+                    //remove last submitted date option
                     for (let i = 0;i < this.dateOpt.length;i++){
                         if (moment(`${this.dateOpt[i]}`).isSame(`${this.selectedDate}`, 'day')){
                             this.dateOpt.splice(i,1)
@@ -514,6 +522,7 @@ export default {
                             this.allProjects.push( project[this.name])
                         }
                     }
+                    this.allProjects.sort()
                 })
         },
         genOpt (val) {
@@ -580,5 +589,7 @@ export default {
 }
 .normal-card {
     box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.0) !important;
+}
+.work-opt {
 }
 </style>
