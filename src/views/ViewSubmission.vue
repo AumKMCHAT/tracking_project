@@ -8,59 +8,25 @@
             Submission</v-card-title>
             <v-form>
                 <v-row class="ma-2">
-                    <!-- <v-col cols="12" md="11">
-                        <v-menu
-                            v-model="menu"
-                            :close-on-content-click="false"
-                            :nudge-right="40"
-                            transition="scale-transition"
-                            offset-y
-                            min-width="auto">
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-text-field
-                                    dense
-                                    v-model="dateRangeText"
-                                    label="Please select dates"
-                                    prepend-icon="edit_calendar"
-                                    readonly
-                                    v-bind="attrs"
-                                    v-on="on"
-                                ></v-text-field>
-                            </template>
-                            <v-date-picker
-                                v-model="dates"
-                                year-icon="mdi-calendar-blank"
-                                prev-icon="arrow_back_ios"
-                                next-icon="arrow_forward_ios"
-                                full-width
-                                range
-                                :min="minDay"
-                                :max="today"
-                                @input="menu = false"
-                            ></v-date-picker>
-                        </v-menu>
-                    </v-col> -->
-
-
                     <v-col
                     cols="12" md="11">
                     <date-picker 
+                    class="date-picker"
                     v-model="dates" 
                     value-type="format" 
-                    format="YYYY-MM-DD"
-                    range 
+                    format="D MMM YYYY"
+                    range
                     placeholder="Select date range"
                     :disabled-date="disabledDate"
                     ></date-picker>
                     </v-col>
-
 
                     <v-col
                     cols="12"
                     md="1"
                     align-self="center"
                     align="right"
-                    class="pt-0 pb-5">
+                    class="mb-3">
                         <v-btn
                         :loading="isLoading"
                         outlined
@@ -104,8 +70,8 @@
 <script>
 import moment from 'moment'
 import axios from 'axios'
-import DatePicker from 'vue2-datepicker';
-import 'vue2-datepicker/index.css';
+import DatePicker from 'vue2-datepicker'
+import 'vue2-datepicker/index.css'
 import { sheetUrl } from '../store/constants'
 
 export default {
@@ -113,7 +79,6 @@ export default {
         DatePicker 
     },
     beforeMount () {
-        this.genMonthOpt()
         this.getName()
     },
     mounted () {
@@ -133,7 +98,7 @@ export default {
         dataShow: [],
         year: moment().format("YYYY"),
         isLoading: false,
-        dates: [moment().subtract(30, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')],
+        dates: [moment().subtract(30, 'days').format('D MMM YYYY'), moment().format('D MMM YYYY')],
         menu: false,
         today: moment().format('YYYY-MM-DD'),
         minDay: moment().startOf('year').format('YYYY-MM-DD')
@@ -153,51 +118,14 @@ export default {
                     }
                 })
         },
-        genFirstDateOpt (val) {
-            this.firstMonth = val
-            this.firstDay = ' '
-            this.firstDateOpt = []
-            let month = moment().format("M")
-            parseInt(month)
-            if (this.firstMonth != month){
-                for (let i = 1; i <= parseInt(moment(`${this.year}-${this.firstMonth}`, "YYYY-M").daysInMonth()); i++){
-                    this.firstDateOpt.push(i)
-                }
-            }else{
-                for (let i = 1; i <= parseInt(moment().format('DD')); i++){
-                    this.firstDateOpt.push(i)
-                }
-            }
-        },
-        genLastDateOpt (val) {
-            this.lastMonth = val
-            this.lastDay = ' '
-            this.lastDateOpt = []
-            let month = moment().format("MM")
-            if (this.lastMonth != month){
-                for (let i = 1; i <= parseInt(moment(`${this.year}-${this.lastMonth}`, "YYYY-M").daysInMonth()); i++){
-                    this.lastDateOpt.push(i)
-                }
-            }else{
-                for (let i = 1; i <= parseInt(moment().format('DD')); i++){
-                    this.lastDateOpt.push(i)
-                }
-            }
-        },
-        genMonthOpt () {
-            let month = moment().format("MM")
-            parseInt(month)
-            for (let i = 1;i <= month;i++){
-                this.monthOpt.push(i)
-            }
-        },
         validate () {
             this.dataShow = []
             this.dateRange = []
+            let datesArr = this.changeFormat(this.dates)
             let firstArr, secondArr
-            firstArr = this.dates[0].split("-")
+            firstArr = datesArr[0].split("-")
             if (this.dates.length > 1){
-                secondArr = this.dates[1].split("-")
+                secondArr = datesArr[1].split("-")
                 if (moment(`${this.dates[0]}`).isBefore(`${this.dates[1]}`, 'day')){
                     this.firstDay = parseInt(firstArr[2])
                     this.firstMonth = parseInt(firstArr[1])
@@ -369,13 +297,13 @@ export default {
 
             return date > today || new Date().getFullYear() > date.getFullYear() ;
         },
-        // dateRangeText (date) {
-        //     // return this.dates.map(item => ({
-        //     //     text: `${moment(`${item}`).format('D MMMM YYYY')}`,
-        //     //     value: item
-        //     // }))
-        //     return moment(`${date}`).format('D MMMM YYYY')
-        // },
+        changeFormat(dates) {
+            let arr = [];
+            for (const date of dates){
+                arr.push(moment(`${date}`).format('YYYY-MM-DD'))
+            }
+            return arr
+        }
     }
 }
 </script>
@@ -429,6 +357,10 @@ export default {
     width: auto; 
     position: absolute;
     margin-left: -70px;
+}
+.date-picker {
+    width: 100%;
+    align-self: center;
 }
 table {
     width: auto;

@@ -79,10 +79,11 @@
                             @onChange="selectedProject.project=$event"></AutoComplete>
                         </v-col>
 
-                        <div
-                        class="d-flex flex-wrap align-center work-opt"
+                        <v-layout align-center
+                        class="work-opt"
                         >
-
+                            <v-flex xs9 md10 pa-3
+                            >
                                 <AutoComplete
                                 :value="selectedProject.work"
                                 :items="formattedWorkOpt"
@@ -91,7 +92,10 @@
                                 rules="Work is required!"
                                 label="Work"
                                 @onChange="selectedProject.work=$event"></AutoComplete>
-                            
+                            </v-flex>
+
+                            <v-flex xs2
+                            >
                                 <v-btn
                                 :disabled="selectedProjects.length <= 1"
                                 outlined
@@ -101,8 +105,8 @@
                                 fab
                                 @click="removeField(index)">
                                 <v-icon >remove</v-icon></v-btn>
-
-                        </div>
+                            </v-flex>
+                        </v-layout>
                     </v-row>
                 </div>
                 </v-card>
@@ -121,8 +125,8 @@
                     <v-col
                     align-self="center"
                     align="right"
-                    :class="this.workSum>0?'warning--text mt-3':(this.workSum==0?'success--text mt-3':'error--text mt-3') ">
-                        <i>Remaining works: {{this.remainingMsg}}</i>
+                    :class="workSum>0?'warning--text mt-3':(workSum==0?'success--text mt-3':'error--text mt-3') ">
+                        <i>Remaining unit: {{ remainingMsg}}</i>
                     </v-col>
                 </v-row>
 
@@ -149,6 +153,7 @@
 
                                 <v-btn color="success" 
                                 :loading="isSubmitting"
+                                :disabled="workSum != 0"
                                 class="mb-2 mt-1"
                                 rounded
                                 @click="validate">Submit</v-btn> 
@@ -259,10 +264,20 @@ export default {
     },
     methods: {
         clear () {
-            if (confirm("Do you really want to clear this form?")){
-                this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
-                this.selectedDate = ' '
-            }
+            Swal.fire({
+                title: 'Do you want to clear this form?',
+                showDenyButton: true,
+                showCancelButton: false,
+                reverseButtons: true,
+                confirmButtonText: 'Clear',
+                denyButtonText: 'Cancel',
+                }).then((result) => {
+                if (result.isConfirmed) {
+                    this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
+                    this.selectedDate = ' '
+                }
+            })
+
         },
         validate () {
             this.submitted = false
@@ -273,15 +288,27 @@ export default {
             }
             if (this.$refs.form.validate()) {
                 if (sum == 1){
-                    if (confirm("Do you want to submit?")){
-                        this.submit()
-                    }else{
-                        this.isSubmitting = false
-                    }
+                    Swal.fire({
+                        title: 'Do you want to submit this form?',
+                        showDenyButton: true,
+                        showCancelButton: false,
+                        reverseButtons: true,
+                        confirmButtonText: 'Submit',
+                        denyButtonText: `Cancel`,
+                        confirmButtonColor: '#4caf50',
+                        }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            this.$store.commit('general/setLoading', true)
+                            await this.submit()
+                            this.$store.commit('general/setLoading', false)
+                        }else{
+                            this.isSubmitting = false
+                        }
+                    })
                 }else{
                     this.isSubmitting = false
                     this.alertType = "warning"
-                    this.alertMsg = "Sum of works must equal to 1"
+                    this.alertMsg = "Sum of works must equal to 1 unit"
                     this.alertIcon = "error_outline"
                     this.submitted = true
                 }
@@ -292,6 +319,7 @@ export default {
                 this.alertIcon = "error_outline"
                 this.submitted = true
             }
+            this.$vuetify.goTo('#app')
         },
         addField () {
             console.log("add");
@@ -305,7 +333,9 @@ export default {
         checkWorks () {
             var sum = 0;
             for (let i = 0; i<this.selectedProjects.length; i++){
-                sum = sum + this.selectedProjects[i].work
+                if (this.selectedProjects[i].work != ''){
+                    sum = sum + this.selectedProjects[i].work
+                }
             }
             this.workSum = 1 - sum
             if (this.workSum < 0){
@@ -522,7 +552,7 @@ export default {
                             this.allProjects.push( project[this.name])
                         }
                     }
-                    this.allProjects.sort()
+                    this.allProjects.sort((a, b) => a.localeCompare(b))
                 })
         },
         genOpt (val) {
@@ -533,14 +563,24 @@ export default {
             this.findProjectsOpt()
         },
         clearCache () {
-            if (confirm("Do you want to clear all cache?")){
-                this.$store.commit("employee/clearName")
-                this.$store.commit("projects/clearProjects")
-                this.name = ' '
-                this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
-                this.selectedDate = ' '
-                this.department = ' '
-            }
+            Swal.fire({
+                title: `Do you want to clear all cache?`,
+                showDenyButton: true,
+                showCancelButton: false,
+                reverseButtons: true,
+                denyButtonText: `Cancel`,
+                confirmButtonText: 'Clear',
+                }).then((result) => {
+                if (result.isConfirmed) {
+                    this.$store.commit("employee/clearName")
+                    this.$store.commit("projects/clearProjects")
+                    this.name = ' '
+                    this.selectedProjects = [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}]
+                    this.selectedDate = ' '
+                    this.department = ' '
+                    Swal.fire('Clear!', '', 'success')
+                } 
+            })
         }
         
     }
@@ -591,5 +631,7 @@ export default {
     box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.0) !important;
 }
 .work-opt {
+    justify-content: flex-end;
 }
+
 </style>

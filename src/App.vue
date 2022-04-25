@@ -1,17 +1,19 @@
 <template>
   <div id="app">
    <v-app>
+     <Loading></Loading>
      <router-view></router-view>
    </v-app>
   </div>
 </template>
 
 <script>
+import Loading from './components/Loading.vue'
 
 export default {
   name: 'App',
   components: {
-
+    Loading
   },
   data: () => ({
     text: 'Hello world'

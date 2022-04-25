@@ -6,10 +6,11 @@ import apexcharts from './plugins/apexcharts'
 import './assets/css/styles.scss'
 import moment from 'moment'
 import store from './store/index'
-import Swal from 'sweetalert2'
+import VueSweetalert2 from 'vue-sweetalert2'
 import DatePicker from 'vue2-datepicker';
 
 Vue.use(require('vue-moment'))
+Vue.use(VueSweetalert2)
 
 Vue.config.productionTip = false
 
