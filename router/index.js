@@ -13,11 +13,6 @@ Vue.use(VueRouter)
 const routes = [
     {
         path: '/',
-        name: 'Homepage',
-        component: () => import('../src/views/Homepage')
-    },
-    {
-        path: '/trackingform',
         name: 'TrackingForm',
         component: () => import('../src/views/TrackingForm')
     },

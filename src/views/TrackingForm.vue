@@ -552,7 +552,7 @@ export default {
                             this.allProjects.push( project[this.name])
                         }
                     }
-                    this.allProjects.sort((a, b) => a.localeCompare(b))
+                    this.allProjects.sort((a, b) => new Intl.Collator().compare(a, b))
                 })
         },
         genOpt (val) {
