@@ -19,6 +19,7 @@ export default {
     text: 'Hello world'
   }),
   created () {
+    this.$store.commit('general/setLoading', false)
     this.testApp()
   },
   methods: {
@@ -31,7 +32,7 @@ export default {
 
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Kanit", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

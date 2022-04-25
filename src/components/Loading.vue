@@ -4,16 +4,13 @@ width="300"
 align="center"
 :value="isLoading">
     <v-sheet
-    class="pa-3"
+    class="pa-5"
     width="max"
-    height="180"
     align="center"
     rounded>
         <div class="loader"
         align="center"></div>
-        <p
-        class="mt-5"
-        >Submitting</p>
+        <div class="mt-7">Submitting</div>
         </v-sheet>
 </v-dialog>
 </template>
