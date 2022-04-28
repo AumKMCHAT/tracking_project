@@ -26,6 +26,11 @@ const routes = [
         name: 'ViewSubmission',
         component: () => import('../src/views/ViewSubmission')
     },
+    {
+        path: '/summary',
+        name: 'Summary',
+        component: () => import('../src/views/Summary')
+    },
 
 ]
 

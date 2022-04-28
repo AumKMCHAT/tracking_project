@@ -151,7 +151,7 @@ export default {
             let res;
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
                 // get a day
-                res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?date=${this.firstDay}&month=${this.firstMonth}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?date=${this.firstDay}&month=${this.firstMonth}`)
                 this.data = res.data
                 this.findRange()
                 this.checkData()
@@ -159,7 +159,7 @@ export default {
             }else{
                 if (this.firstMonth == this.lastMonth){
                     // get a month
-                    res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?month=${this.firstMonth}`)
+                    res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${this.firstMonth}`)
                     this.data = res.data
                     this.filterData()
                     this.findRange()
@@ -167,7 +167,7 @@ export default {
                     this.isLoading = false
                 }else{
                     //get in range
-                    res = await axios.get(sheetUrl + `/tabs/data_${this.year}/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
+                    res = await axios.get(sheetUrl + `/tabs/Per man/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
                     this.data = res.data
                     this.filterData()
                     this.findRange()

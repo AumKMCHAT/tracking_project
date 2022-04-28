@@ -414,18 +414,18 @@ export default {
             for (let i = 0;i < this.selectedProjects.length;i++){
                 if (this.selectedProjects[i].project != '' && this.selectedProjects[i].work != ''){
                     row = {
-                        date: this.date,
-                        month: this.month,
-                        project: this.selectedProjects[i].project,
-                        work: this.selectedProjects[i].work,
-                        name: this.name,
-                        department: this.department,
-                        remark: msg,
+                        "date": this.date,
+                        "month": this.month,
+                        "project": this.selectedProjects[i].project,
+                        "work": this.selectedProjects[i].work,
+                        "name": this.name,
+                        "department": this.department,
+                        "remark": msg,
                     }
                     this.data.push(row)
                 }
             }
-            resPost = await axios.post(sheetUrl + `/tabs/data_${this.year}`, this.data )
+            resPost = await axios.post(sheetUrl + '/tabs/Per man', this.data )
                 if (resPost.status == 200){
                     projectData = await axios.get(sheetUrl + `/tabs/sumProject`)
                     for (const m of this.data){
@@ -482,7 +482,15 @@ export default {
             this.selectedDate = val
             this.late = false
             if (moment(this.selectedDate).isBefore(this.today)){
-                this.late = true
+                if(moment(`${this.selectedDate}`).isSame(moment().subtract(1, 'days').format("YYYY-MM-DD"))){
+                    if (moment(`${moment().format("HH:mm")}`, "HH:mm").isBefore(moment('17:30','HH:mm'))){
+                        this.late = false
+                    }else{
+                       this.late = true 
+                    }
+                }else{
+                    this.late = true
+                }
             }
             let arr = this.selectedDate.split("-")
             this.date = parseInt(arr[2])
@@ -494,7 +502,7 @@ export default {
             let found1 = false;
             let found2 = false;
             if (moment().subtract(6, 'days').format("M") == moment().format("M")){
-                res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
                     data1 = res.data
                 for (let i = 0; i < 7; i++){
                     found1 = false
@@ -512,9 +520,9 @@ export default {
                     }
                 }
             }else{
-                res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
                     data1 = res.data
-                res = await axios.get(sheetUrl + `/tabs/data_${this.year}/search?month=${moment().format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${moment().format("M")}&name=${this.name}`)
                     data2 = res.data
                 for (let i = 0; i < 7; i++){
                     found1 = false
@@ -538,7 +546,20 @@ export default {
                     }
                 }
             }
-            if (this.dateOpt.length >= 1){
+            if (this.dateOpt.length > 1){
+                if (moment(`${moment().format("HH:mm")}`, "HH:mm").isBefore(moment('17:30','HH:mm'))){
+                    if (moment(`${this.dateOpt[1]}`).isSame(moment().subtract(1, 'days').format("YYYY-MM-DD"))){
+                        this.selectedDate = this.dateOpt[1]
+                        this.checkLate(this.selectedDate)
+                    }else{
+                        this.selectedDate = this.dateOpt[0]
+                        this.checkLate(this.selectedDate)
+                    }
+                }else{
+                    this.selectedDate = this.dateOpt[0]
+                    this.checkLate(this.selectedDate)
+                }
+            }else{
                 this.selectedDate = this.dateOpt[0]
                 this.checkLate(this.selectedDate)
             }
