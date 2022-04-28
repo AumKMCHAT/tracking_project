@@ -75,8 +75,8 @@ export default {
         DatePicker 
     },
     beforeMount () {
-        // this.getProjects(),
-        // this.getName()
+        this.getProjects(),
+        this.getName()
     },
     computed: {
         formattedNameOpt () {
@@ -103,13 +103,7 @@ export default {
         lastMonth: '',
         gbName: '',
         gbProject: '',
-        series: [{
-            name: "1",
-            data: [44, 55, 41, 64, 22, 43, 21]
-          }, {
-            name: "2",
-            data: [53, 32, 33, 52, 13, 44, 32]
-          }],
+        series: [],
         chartOptions: {
             chart: {
               type: 'bar',
@@ -141,7 +135,7 @@ export default {
               intersect: false
             },
             xaxis: {
-              categories: [2001, 2002, 2003, 2004, 2005, 2006, 2007],
+              categories: [],
             }
         },
         result: []
@@ -220,9 +214,9 @@ export default {
         groupBy (arr, key) {
             const val = {}
             return arr.reduce((acc, nval) => {
-            const att = nval[key]
-            acc[att] = [...(acc[att] || []), nval]
-            return acc
+                const att = nval[key]
+                acc[att] = [...(acc[att] || []), nval]
+                return acc
             }, val)
         },
         async getData () {
@@ -246,6 +240,7 @@ export default {
                     //get in range
                     res = await axios.get(sheetUrl + `/tabs/Per man/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
                     //filterdate 
+                    this.data = res.data
                     this.filterDate()
                     this.filterData()
                     this.isLoading = false
@@ -280,12 +275,21 @@ export default {
             this.getData()
         },
         filterData () {
+            console.log(this.data);
             this.gbName = this.groupBy(this.data, "name")
+            let index = 0
             for (const n of this.selectedNames){
-                // this.gbName[n]
+                let arr = this.groupBy(this.gbName[n], "project")
+                for (const p of this.selectedProjects){
+                    // sum arr[p]
+                    let sum = arr[p].reduce(function(sum, current) {
+                        return sum + current.work;
+                        }, 0);
+                    this.result[index].push(sum)
+                }
+                index++
             }
-            // this.gbProject = groupBy(this.)
-
+            this.createSeries()
         },
         filterDate () {
             let a = [];
@@ -314,10 +318,11 @@ export default {
             let index = 0
             for (const p of this.selectedProjects){
                 obj.name = p
-                // obj.data = [index]
+                obj.data = this.result[index]
                 this.series.push(obj)
             }
             this.chartOptions.xaxis.categories = this.selectedProjects
+            this.isLoading = false
         }
     }
 
