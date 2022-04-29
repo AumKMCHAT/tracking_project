@@ -186,7 +186,7 @@ export default {
             }else{
                 if (this.firstMonth == this.lastMonth){
                     for (let i = this.firstDay; i <= this.lastDay; i++){
-                        if (moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 6 && moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 7){
+                        if (moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Saturday"  && moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Sunday"){
                             this.dateRange.push({
                             date: i,
                             month: this.firstMonth,
@@ -196,7 +196,7 @@ export default {
                 }else{
                     if (this.lastMonth-this.firstMonth == 1){
                         for (let i = this.firstDay; i <= parseInt(moment(`${this.year}-${this.firstMonth}`, "YYYY-M").daysInMonth()); i++){
-                            if (moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 6 && moment(`${this.year}-${this.firstMonth}-${i}`).isoWeekday() != 7){
+                            if (moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Saturday"  && moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Sunday"){
                                 this.dateRange.push({
                                 date: i,
                                 month: this.firstMonth,
@@ -204,7 +204,7 @@ export default {
                             }
                         }
                         for (let i = 1; i <= this.lastDay; i++){
-                            if (moment(`${this.year}-${this.lastMonth}-${i}`).isoWeekday() != 6 && moment(`${this.year}-${this.lastMonth}-${i}`).isoWeekday() != 7){
+                            if (moment(`${this.year}-${this.lastMonth}-${i}`).format("dddd") != "Saturday"  && moment(`${this.year}-${this.lastMonth}-${i}`).format("dddd") != "Sunday"){
                                 this.dateRange.push({
                                 date: i,
                                 month: this.lastMonth,
