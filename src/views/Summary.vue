@@ -7,58 +7,62 @@
             pl-3">Summary</v-card-title>
 
             <v-form>
-                <v-row>
-                    <v-col
-                    cols="12"
-                    md="5"
-                    >
-                        <v-select
-                        outlined
-                        dense
-                        v-model="selectedNames"
-                        :items="formattedNameOpt"
-                        item-text="text"
-                        item-value="value"
-                        multiple
-                        label="Please select names"
-                        ></v-select>
-                    </v-col>
+                <v-container>
+                    <v-row>
+                        <v-col
+                        cols="12"
+                        md="5"
+                        >
+                            <v-select
+                            outlined
+                            dense
+                            v-model="selectedNames"
+                            :items="formattedNameOpt"
+                            item-text="text"
+                            item-value="value"
+                            multiple
+                            label="Please select names"
+                            ></v-select>
+                        </v-col>
 
-                    <v-col
-                    cols="12"
-                    md="7">
-                        <v-autocomplete
-                        outlined
-                        dense
-                        v-model="selectedProjects"
-                        :items="projects"
-                        multiple
-                        label="Please select projects"
-                        ></v-autocomplete>
-                    </v-col>
-                </v-row>
+                        <v-col
+                        cols="12"
+                        md="7">
+                            <v-autocomplete
+                            outlined
+                            dense
+                            v-model="selectedProjects"
+                            :items="projects"
+                            multiple
+                            label="Please select projects"
+                            ></v-autocomplete>
+                        </v-col>
+                    </v-row>
 
-                <v-row>
-                    <v-col
-                    align-self="start"
-                    cols="12"
-                    md="12">
-                    <date-picker 
-                    class="date-picker"
-                    v-model="dates" 
-                    value-type="format" 
-                    format="D MMM YYYY"
-                    range
-                    placeholder="Select date range"
-                    :disabled-date="disabledDate"
-                    ></date-picker>
-                    </v-col>
-                </v-row>
+                    <v-row
+                    class="mt-0">
+                        <v-col
+                        align-self="start"
+                        cols="12"
+                        md="12">
+                        <date-picker 
+                        class="date-picker"
+                        v-model="dates" 
+                        value-type="format" 
+                        format="D MMM YYYY"
+                        range
+                        placeholder="Select date range"
+                        :disabled-date="disabledDate"
+                        ></date-picker>
+                        </v-col>
+                    </v-row>
+                </v-container>
 
                 <v-row justify="end">
                  <v-col
                     cols="12"
-                    md="2">
+                    md="2"
+                    class="mt-3">
                         <v-btn
                         :loading="isLoading"
                         outlined
@@ -164,6 +168,7 @@ export default {
               categories: ''
 
             },
+            colors: []
         },
         result: []
         
@@ -340,7 +345,6 @@ export default {
                         cateArr = cateArr.concat(Object.keys(arr))
                     }
                     this.selectedProjects = cateArr.filter(this.onlyUnique)
-
                     this.createResult()
                     for (const p of this.selectedProjects){
                         for (const n of this.selectedNames){
@@ -380,6 +384,7 @@ export default {
                 }
                 this.chartOptions.xaxis.categories = ["projects"]
             }
+            this.randomColors()
             this.createSeries()
         },
         filterDate () {
@@ -412,7 +417,6 @@ export default {
                 this.series.push(obj)
                 index++
             }
-            console.log(this.series);
             this.isLoading = false
         },
         createResult () {
@@ -430,6 +434,13 @@ export default {
         },
         onlyUnique(value, index, self) {
             return self.indexOf(value) === index;
+        },
+        randomColors () {
+            let ran 
+            for (const p of this.selectedProjects){
+                ran = Math.floor(Math.random()*16777215).toString(16)
+                this.chartOptions.colors.push(`#${ran}`)
+            }
         }
     }
 
