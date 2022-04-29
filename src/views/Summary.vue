@@ -170,7 +170,8 @@ export default {
             },
             colors: []
         },
-        result: []
+        result: [],
+        showDates: []
         
     }),
     methods: {
@@ -283,6 +284,7 @@ export default {
             }
         },        
         validate () {
+            this.showDates = this.dates
             this.data = []
             this.series = []
             this.result = []
@@ -316,6 +318,7 @@ export default {
             let sum = 0
             if (this.selectedNames.length > 0){
                 if (this.selectedProjects.length > 0){
+                    this.chartOptions.xaxis.categories = this.selectedNames
                     this.gbName = this.groupBy(this.data, "name")
                     for (const p of this.selectedProjects){
                         for (const n of this.selectedNames){
@@ -336,9 +339,11 @@ export default {
                         }
                         index++
                     }
-                    this.chartOptions.xaxis.categories = this.selectedNames
+                    this.randomColors()
+                    this.createSeries()
                 }else{
                     let cateArr = []
+                    this.chartOptions.xaxis.categories = this.selectedNames
                     this.gbName = this.groupBy(this.data, "name")
                     for (const n of this.selectedNames){
                         arr = this.groupBy(this.gbName[n], "project")
@@ -365,27 +370,50 @@ export default {
                         }
                         index++
                     }
-                    this.chartOptions.xaxis.categories = this.selectedNames
-
+                    this.randomColors()
+                    this.createSeries()
+                    this.selectedProjects = []
                 }
             }else{
-                this.gbProject = this.groupBy(this.data, "project")
-                for (const n of this.selectedProjects){
-                    sum = 0
-                    if(this.gbProject[n]){
-                        for (const m of this.gbProject[n]){
-                            sum = sum + parseFloat(m.work)
-                        }
-                    }else{
+                if (this.selectedProjects.length > 0){
+                    this.chartOptions.xaxis.categories = ["projects"]
+                    this.gbProject = this.groupBy(this.data, "project")
+                    for (const n of this.selectedProjects){
                         sum = 0
+                        if(this.gbProject[n]){
+                            for (const m of this.gbProject[n]){
+                                sum = sum + parseFloat(m.work)
+                            }
+                        }else{
+                            sum = 0
+                        }
+                        this.result[index].push(sum)
+                        index++
                     }
-                    this.result[index].push(sum)
-                    index++
+                    this.randomColors()
+                    this.createSeries()
+                }else{
+                    this.gbProject = this.groupBy(this.data, "project")
+                    this.selectedProjects = Object.keys(this.gbProject)
+                    this.createResult()
+                    for (const n of this.selectedProjects){
+                        sum = 0
+                        if(this.gbProject[n]){
+                            for (const m of this.gbProject[n]){
+                                sum = sum + parseFloat(m.work)
+                            }
+                        }else{
+                            sum = 0
+                        }
+                        this.result[index].push(sum)
+                        index++
+                    }
+                    this.chartOptions.xaxis.categories = ["projects"]
+                    this.randomColors()
+                    this.createSeries()
+                    this.selectedProjects = []
                 }
-                this.chartOptions.xaxis.categories = ["projects"]
             }
-            this.randomColors()
-            this.createSeries()
         },
         filterDate () {
             let a = [];
@@ -425,7 +453,7 @@ export default {
             }
         },
         formatDateShow () {
-            let datesArr = this.changeFormat(this.dates)
+            let datesArr = this.changeFormat(this.showDates)
             if (moment(`${datesArr[0]}`).isSame(`${datesArr[1]}`, 'day')){
                 return moment(`${datesArr[0]}`).format('D MMMM YYYY')
             }else{
