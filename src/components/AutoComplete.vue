@@ -6,6 +6,7 @@
     :rules="rule ? [v => !!v || rule]:[]"
     :label="label"
     :required="required"
+    append-icon="arrow_drop_down"
     @change="eventChange"
     ></v-autocomplete>
 </template>

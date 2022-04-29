@@ -405,6 +405,7 @@ export default {
             }
         },
         async submit () {
+            this.checkLate(this.selectedDate)
             let row, resPost, projectData, index;
             let newVal;
             let msg = "";
@@ -414,17 +415,18 @@ export default {
             for (let i = 0;i < this.selectedProjects.length;i++){
                 if (this.selectedProjects[i].project != '' && this.selectedProjects[i].work != ''){
                     row = {
-                        "date": this.date,
-                        "month": this.month,
-                        "project": this.selectedProjects[i].project,
-                        "work": this.selectedProjects[i].work,
-                        "name": this.name,
-                        "department": this.department,
-                        "remark": msg,
+                        date: this.date,
+                        month: this.month,
+                        project: this.selectedProjects[i].project,
+                        work: this.selectedProjects[i].work,
+                        name: this.name,
+                        department: this.department,
+                        remark: msg,
                     }
                     this.data.push(row)
                 }
             }
+            console.log(this.data);
             resPost = await axios.post(sheetUrl + '/tabs/Per man', this.data )
                 if (resPost.status == 200){
                     projectData = await axios.get(sheetUrl + `/tabs/sumProject`)

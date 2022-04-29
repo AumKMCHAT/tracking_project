@@ -1,12 +1,48 @@
 <template>
-    <div>
-        <v-card class="pa-3">
-            <v-card-title>Summary</v-card-title>
+    <div :class="isMobile?'mobile-layout':'normal-layout'">
+        <v-card :class="isMobile?'mobile-card':'normal-card'">
+            <v-card-title class="text-h5
+            text-sm-h4
+            text-xl-h4
+            pl-3">Summary</v-card-title>
 
             <v-form>
                 <v-row>
                     <v-col
-                    align-self="center">
+                    cols="12"
+                    md="5"
+                    >
+                        <v-select
+                        outlined
+                        dense
+                        v-model="selectedNames"
+                        :items="formattedNameOpt"
+                        item-text="text"
+                        item-value="value"
+                        multiple
+                        label="Please select names"
+                        ></v-select>
+                    </v-col>
+
+                    <v-col
+                    cols="12"
+                    md="7">
+                        <v-autocomplete
+                        outlined
+                        dense
+                        v-model="selectedProjects"
+                        :items="projects"
+                        multiple
+                        label="Please select projects"
+                        ></v-autocomplete>
+                    </v-col>
+                </v-row>
+
+                <v-row>
+                    <v-col
+                    align-self="start"
+                    cols="12"
+                    md="12">
                     <date-picker 
                     class="date-picker"
                     v-model="dates" 
@@ -17,29 +53,12 @@
                     :disabled-date="disabledDate"
                     ></date-picker>
                     </v-col>
+                </v-row>
 
-                    <v-col>
-                        <v-select
-                        v-model="selectedNames"
-                        :items="formattedNameOpt"
-                        item-text="text"
-                        item-value="value"
-                        multiple
-                        label="Please select names"
-                        ></v-select>
-                    </v-col>
-
-                    <v-col>
-                        <v-autocomplete
-                        v-model="selectedProjects"
-                        :items="projects"
-                        multiple
-                        label="Please select projects"
-                        ></v-autocomplete>
-                    </v-col>
-
-                    <v-col
-                    align-self="center">
+                <v-row justify="end">
+                 <v-col
+                    cols="12"
+                    md="2">
                         <v-btn
                         :loading="isLoading"
                         outlined
@@ -53,10 +72,14 @@
 
             </v-form>
 
-            <v-card>
-                    <apexchart 
-                      type="bar" height="430" :options="chartOptions" :series="series">
-                  </apexchart> 
+            <v-card v-if="series.length > 0">
+                <v-card-title
+                class="justify-center">{{formatDateShow()}}</v-card-title>
+                <apexchart 
+                type="bar" 
+                :options="chartOptions" 
+                :series="series">
+                </apexchart> 
             </v-card>
         </v-card>
     </div>
@@ -85,7 +108,7 @@ export default {
                 value: item
             }))
         },
-        isMobile() {
+        isMobile () {
             return this.$vuetify.breakpoint.mobile
         }
     },
@@ -113,17 +136,20 @@ export default {
               bar: {
                 horizontal: true,
                 dataLabels: {
-                  position: 'top',
+                  position: 'center',
                 },
               }
             },
             dataLabels: {
-              enabled: true,
-              offsetX: -6,
-              style: {
-                fontSize: '12px',
-                colors: ['#fff']
-              }
+                enabled: true,
+                offsetX: -6,
+                style: {
+                    fontSize: '12px',
+                    colors: ['#fff']
+                },
+                formatter: function (val) {
+                    return val + "( " + val*8 +  " hrs)"
+                },
             },
             stroke: {
               show: true,
@@ -135,8 +161,9 @@ export default {
               intersect: false
             },
             xaxis: {
-              categories: [],
-            }
+              categories: ''
+
+            },
         },
         result: []
         
@@ -227,6 +254,7 @@ export default {
                 // get a day
                 res = await axios.get(sheetUrl + `/tabs/Per man/search?date=${this.firstDay}&month=${this.firstMonth}`)
                 this.data = res.data
+                this.createResult()
                 this.filterData()
                 this.isLoading = false
             }else{
@@ -234,6 +262,7 @@ export default {
                     // get a month
                     res = await axios.get(sheetUrl + `/tabs/Per man/query?month=${this.firstMonth}&date=__gte(${this.firstDay})&date=__lte(${this.lastDay})`)
                     this.data = res.data
+                    this.createResult()
                     this.filterData()
                     this.isLoading = false
                 }else{
@@ -241,6 +270,7 @@ export default {
                     res = await axios.get(sheetUrl + `/tabs/Per man/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
                     //filterdate 
                     this.data = res.data
+                    this.createResult()
                     this.filterDate()
                     this.filterData()
                     this.isLoading = false
@@ -248,8 +278,10 @@ export default {
             }
         },        
         validate () {
-            this.dataShow = []
-            this.dateRange = []
+            this.chartOptions.xaxis.categories = this.selectedNames
+            this.data = []
+            this.series = []
+            this.result = []
             let datesArr = this.changeFormat(this.dates)
             let firstArr, secondArr
             firstArr = datesArr[0].split("-")
@@ -275,19 +307,31 @@ export default {
             this.getData()
         },
         filterData () {
-            console.log(this.data);
-            this.gbName = this.groupBy(this.data, "name")
             let index = 0
-            for (const n of this.selectedNames){
-                let arr = this.groupBy(this.gbName[n], "project")
+            let arr
+            let sum = 0
+            if (this.selectedNames.length > 0){
+                this.gbName = this.groupBy(this.data, "name")
                 for (const p of this.selectedProjects){
-                    // sum arr[p]
-                    let sum = arr[p].reduce(function(sum, current) {
-                        return sum + current.work;
-                        }, 0);
-                    this.result[index].push(sum)
+                    for (const n of this.selectedNames){
+                        sum = 0
+                        if (this.gbName[n]){
+                            arr = this.groupBy(this.gbName[n], "project")
+                            if (!arr[p]){
+                                sum = 0
+                            }else{
+                                for (const num of arr[p]){
+                                    sum = sum + parseFloat(num.work)
+                                }
+                            }
+
+                        }else{
+                            sum = 0
+                        }
+                        this.result[index].push(sum)
+                    }
+                    index++
                 }
-                index++
             }
             this.createSeries()
         },
@@ -313,16 +357,29 @@ export default {
             this.data = a
         },
         createSeries () {
-            let obj = {name: '',
-            data: ''}
             let index = 0
             for (const p of this.selectedProjects){
+                let obj = new Object()
                 obj.name = p
                 obj.data = this.result[index]
                 this.series.push(obj)
+                index++
             }
-            this.chartOptions.xaxis.categories = this.selectedProjects
+            console.log(this.series);
             this.isLoading = false
+        },
+        createResult () {
+            for (const p of this.selectedProjects){
+                this.result.push([])
+            }
+        },
+        formatDateShow () {
+            let datesArr = this.changeFormat(this.dates)
+            if (moment(`${datesArr[0]}`).isSame(`${datesArr[1]}`, 'day')){
+                return moment(`${datesArr[0]}`).format('D MMMM YYYY')
+            }else{
+                return `${moment(`${datesArr[0]}`).format('D MMMM YYYY')} - ${moment(`${datesArr[1]}`).format('D MMMM YYYY')}`
+            }
         }
     }
 
@@ -331,5 +388,31 @@ export default {
 </script>
 
 <style scoped>
+.normal-layout {
+    height: 100%;
+    display: 80%;
+    justify-content: center;
+    align-content: center;
+    background: radial-gradient(circle, rgba(249,254,255,0.14469537815126055) 0%, rgba(204,233,233,1) 100%);
+}
+.mobile-layout {
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+.normal-card {
+    margin: 20px !important;
+    padding: 20px !important;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35) !important;
+    border-radius: 12px !important;
+}
+.mobile-card {
+    padding: 7px !important;
+    box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
+}
+.date-picker {
+    width: 100%;
+    align-self: center;
+}
 
 </style>
