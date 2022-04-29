@@ -148,7 +148,7 @@ export default {
                     colors: ['#fff']
                 },
                 formatter: function (val) {
-                    return val + "( " + val*8 +  " hrs)"
+                    return val + " ( " + val*8 +  " hrs )"
                 },
             },
             stroke: {
@@ -278,7 +278,6 @@ export default {
             }
         },        
         validate () {
-            this.chartOptions.xaxis.categories = this.selectedNames
             this.data = []
             this.series = []
             this.result = []
@@ -311,27 +310,75 @@ export default {
             let arr
             let sum = 0
             if (this.selectedNames.length > 0){
-                this.gbName = this.groupBy(this.data, "name")
-                for (const p of this.selectedProjects){
-                    for (const n of this.selectedNames){
-                        sum = 0
-                        if (this.gbName[n]){
-                            arr = this.groupBy(this.gbName[n], "project")
-                            if (!arr[p]){
-                                sum = 0
-                            }else{
-                                for (const num of arr[p]){
-                                    sum = sum + parseFloat(num.work)
-                                }
-                            }
-
-                        }else{
+                if (this.selectedProjects.length > 0){
+                    this.gbName = this.groupBy(this.data, "name")
+                    for (const p of this.selectedProjects){
+                        for (const n of this.selectedNames){
                             sum = 0
+                            if (this.gbName[n]){
+                                arr = this.groupBy(this.gbName[n], "project")
+                                if (!arr[p]){
+                                    sum = 0
+                                }else{
+                                    for (const num of arr[p]){
+                                        sum = sum + parseFloat(num.work)
+                                    }
+                                }
+                            }else{
+                                sum = 0
+                            }
+                            this.result[index].push(sum)
                         }
-                        this.result[index].push(sum)
+                        index++
                     }
+                    this.chartOptions.xaxis.categories = this.selectedNames
+                }else{
+                    let cateArr = []
+                    this.gbName = this.groupBy(this.data, "name")
+                    for (const n of this.selectedNames){
+                        arr = this.groupBy(this.gbName[n], "project")
+                        cateArr = cateArr.concat(Object.keys(arr))
+                    }
+                    this.selectedProjects = cateArr.filter(this.onlyUnique)
+
+                    this.createResult()
+                    for (const p of this.selectedProjects){
+                        for (const n of this.selectedNames){
+                            sum = 0
+                            if (this.gbName[n]){
+                                arr = this.groupBy(this.gbName[n], "project")
+                                if (!arr[p]){
+                                    sum = 0
+                                }else{
+                                    for (const num of arr[p]){
+                                        sum = sum + parseFloat(num.work)
+                                    }
+                                }
+                            }else{
+                                sum = 0
+                            }
+                            this.result[index].push(sum)
+                        }
+                        index++
+                    }
+                    this.chartOptions.xaxis.categories = this.selectedNames
+
+                }
+            }else{
+                this.gbProject = this.groupBy(this.data, "project")
+                for (const n of this.selectedProjects){
+                    sum = 0
+                    if(this.gbProject[n]){
+                        for (const m of this.gbProject[n]){
+                            sum = sum + parseFloat(m.work)
+                        }
+                    }else{
+                        sum = 0
+                    }
+                    this.result[index].push(sum)
                     index++
                 }
+                this.chartOptions.xaxis.categories = ["projects"]
             }
             this.createSeries()
         },
@@ -380,6 +427,9 @@ export default {
             }else{
                 return `${moment(`${datesArr[0]}`).format('D MMMM YYYY')} - ${moment(`${datesArr[1]}`).format('D MMMM YYYY')}`
             }
+        },
+        onlyUnique(value, index, self) {
+            return self.indexOf(value) === index;
         }
     }
 

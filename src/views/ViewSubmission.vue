@@ -176,6 +176,7 @@ export default {
                 }
             }
         },
+        //bugs date format for check range
         findRange () {
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
                 this.dateRange.push({
