@@ -37,7 +37,7 @@
                         :items="allDepartments"
                         rule="Department is required!"
                         label="Department"
-                        readonly
+                        :readonly="true"
                         ></Select>
                     </v-col>
                 </v-row>

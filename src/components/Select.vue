@@ -7,7 +7,7 @@
     :label="label"
     :required="required"
     :readonly="readonly"
-    append-icon="arrow_drop_down"
+    :append-icon="readonly ? undefined : 'arrow_drop_down'"
     @change="eventChange"
     ></v-select>
 </template>

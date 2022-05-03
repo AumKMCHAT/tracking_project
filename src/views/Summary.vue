@@ -22,7 +22,21 @@
                             item-value="value"
                             multiple
                             label="Please select names"
-                            ></v-select>
+                            prepend-inner-icon="person"
+                            >
+                            <!-- <template v-slot:item="{ item, on, attrs }"> -->
+                                <!-- <v-list-item v-on="on" v-bind="attrs">
+                                <v-list-item-icon>
+                                    <v-icon>
+                                    {{ select.includes(item) ? 'checked' : 'uncheck' }}
+                                    </v-icon>
+                                </v-list-item-icon>
+                                <v-list-item-content>
+                                    <v-list-item-title v-text="item" class="text-left"></v-list-item-title>
+                                </v-list-item-content>
+                                </v-list-item> -->
+                            <!-- </template> -->
+                            </v-select>
                         </v-col>
 
                         <v-col
@@ -35,6 +49,7 @@
                             :items="projects"
                             multiple
                             label="Please select projects"
+                            prepend-inner-icon="summarize"
                             ></v-autocomplete>
                         </v-col>
                     </v-row>
@@ -56,29 +71,31 @@
                         ></date-picker>
                         </v-col>
                     </v-row>
-                </v-container>
 
-                <v-row justify="end">
-                 <v-col
-                    cols="12"
-                    md="2"
-                    class="mt-3">
-                        <v-btn
-                        :loading="isLoading"
-                        outlined
-                        rounded
-                        block
-                        color="primary"
-                        class="view-btn"
-                        @click="validate">view</v-btn>
-                    </v-col>
-                </v-row>
+                    <v-row justify="end">
+                        <v-col
+                        cols="12"
+                        md="2"
+                        class="mt-3">
+                            <v-btn
+                            :loading="isLoading"
+                            outlined
+                            rounded
+                            block
+                            color="primary"
+                            class="view-btn"
+                            @click="validate">view</v-btn>
+                        </v-col>
+                    </v-row>
+                </v-container>
 
             </v-form>
 
             <v-card v-if="series.length > 0">
                 <v-card-title
-                class="justify-center">{{formatDateShow()}}</v-card-title>
+                class="justify-center 
+                text-h6
+                text-sm-h4">{{formatDateShow()}}</v-card-title>
                 <apexchart 
                 type="bar" 
                 :options="chartOptions" 
@@ -139,6 +156,7 @@ export default {
             plotOptions: {
               bar: {
                 horizontal: true,
+                columnWidth: '50%',
                 dataLabels: {
                   position: 'center',
                 },
@@ -219,15 +237,6 @@ export default {
                     graphic.sort()
                     qa.sort()
                     this.nameList = ba.concat(dev,graphic,qa)
-                    if (this.employeeName){
-                        this.name = this.employeeName
-                        for (let i = 0;i < this.projectsName.length;i++){
-                            this.selectedProjects[i] = this.projectsName[i]
-                        }
-                        this.findDepartment()
-                        this.genDateOpt()
-                        this.findProjectsOpt()
-                    }
                 })
         },
         showDepartment (val) {
@@ -318,6 +327,7 @@ export default {
             let sum = 0
             if (this.selectedNames.length > 0){
                 if (this.selectedProjects.length > 0){
+                    // select name and project
                     this.chartOptions.xaxis.categories = this.selectedNames
                     this.gbName = this.groupBy(this.data, "name")
                     for (const p of this.selectedProjects){
@@ -342,6 +352,7 @@ export default {
                     this.randomColors()
                     this.createSeries()
                 }else{
+                    //select name
                     let cateArr = []
                     this.chartOptions.xaxis.categories = this.selectedNames
                     this.gbName = this.groupBy(this.data, "name")
@@ -376,6 +387,7 @@ export default {
                 }
             }else{
                 if (this.selectedProjects.length > 0){
+                    //select project
                     this.chartOptions.xaxis.categories = ["projects"]
                     this.gbProject = this.groupBy(this.data, "project")
                     for (const n of this.selectedProjects){
@@ -393,19 +405,18 @@ export default {
                     this.randomColors()
                     this.createSeries()
                 }else{
+                    //select date range
                     this.gbProject = this.groupBy(this.data, "project")
                     this.selectedProjects = Object.keys(this.gbProject)
+                    console.log(this.selectedProjects);
                     this.createResult()
                     for (const n of this.selectedProjects){
-                        sum = 0
-                        if(this.gbProject[n]){
-                            for (const m of this.gbProject[n]){
-                                sum = sum + parseFloat(m.work)
-                            }
-                        }else{
-                            sum = 0
+                        for (const m of this.gbProject[n]){
+                            sum = sum + parseFloat(m.work)
                         }
+
                         this.result[index].push(sum)
+                        sum=0
                         index++
                     }
                     this.chartOptions.xaxis.categories = ["projects"]
@@ -455,19 +466,23 @@ export default {
         formatDateShow () {
             let datesArr = this.changeFormat(this.showDates)
             if (moment(`${datesArr[0]}`).isSame(`${datesArr[1]}`, 'day')){
-                return moment(`${datesArr[0]}`).format('D MMMM YYYY')
+                return moment(`${datesArr[0]}`).format('dddd D MMMM YYYY')
             }else{
-                return `${moment(`${datesArr[0]}`).format('D MMMM YYYY')} - ${moment(`${datesArr[1]}`).format('D MMMM YYYY')}`
+                return `${moment(`${datesArr[0]}`).format('dddd D MMMM YYYY')} - ${moment(`${datesArr[1]}`).format('dddd D MMMM YYYY')}`
             }
         },
         onlyUnique(value, index, self) {
             return self.indexOf(value) === index;
         },
         randomColors () {
-            let ran 
+            let letters = '0123456789ABCDEF';
+            let color = '#';
             for (const p of this.selectedProjects){
-                ran = Math.floor(Math.random()*16777215).toString(16)
-                this.chartOptions.colors.push(`#${ran}`)
+                color = '#'
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                this.chartOptions.colors.push(color)
             }
         }
     }
