@@ -21,7 +21,7 @@
                             item-text="text"
                             item-value="value"
                             multiple
-                            label="Please select names"
+                            label="Employees"
                             prepend-inner-icon="person"
                             @change="checkGraphType"
                             >
@@ -51,7 +51,7 @@
                             v-model="selectedProjects"
                             :items="projects"
                             multiple
-                            label="Please select projects"
+                            label="Projects"
                             prepend-inner-icon="summarize"
                             >
 
@@ -83,7 +83,7 @@
                         dense
                         v-model="graphType"
                         :items="graphTypes"
-                        label="Please select type"
+                        label="Type"
                         prepend-inner-icon="bar_chart"
                         :disabled="selectedNames.length > 1"
                         ></v-select></v-col>
@@ -227,7 +227,7 @@ export default {
         result: [],
         showDates: [],
         graphType: '',
-        graphTypes: ["daily", "weekly", "monthly"]
+        graphTypes: ["Daily", "Weekly", "Monthly"]
         
     }),
     methods: {
@@ -458,7 +458,7 @@ export default {
             let arr = []
             let gbMonth,gbDate,gbWeek
             switch (this.graphType) {
-                case 'daily':
+                case 'Daily':
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
                         gbDate = this.groupBy(gbMonth[m], "date")
@@ -488,7 +488,7 @@ export default {
                     }
                     break;
 
-                case 'weekly':
+                case 'Weekly':
                     //sum of work in each week
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
@@ -518,7 +518,7 @@ export default {
                     }
                     break;
 
-                case 'monthly':
+                case 'Monthly':
                     //sum of work in each month
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
@@ -580,7 +580,7 @@ export default {
             let gbMonth,gbDate,gbWeek
 
             switch (this.graphType) {
-                case 'daily':
+                case 'Daily':
                     //find the number of projects
                     this.gbName = this.groupBy(this.data, "name")
                     for (const n of this.selectedNames){
@@ -619,7 +619,7 @@ export default {
                     }
                     break;
 
-                case 'weekly':
+                case 'Weekly':
                     //find the number of projects
                     this.gbName = this.groupBy(this.data, "name")
                     for (const n of this.selectedNames){
@@ -658,7 +658,7 @@ export default {
                     
                     break;
 
-                case 'monthly':
+                case 'Monthly':
                     //find the number of projects
                     this.gbName = this.groupBy(this.data, "name")
                     for (const n of this.selectedNames){
@@ -731,7 +731,7 @@ export default {
             let index = 0
             let gbMonth,gbDate,gbWeek
             switch (this.graphType) {
-                case 'daily':
+                case 'Daily':
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
                         gbDate = this.groupBy(gbMonth[m], "date")
@@ -757,7 +757,7 @@ export default {
                     
                     break;
 
-                case 'weekly':
+                case 'Weekly':
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
                         gbWeek = this.groupBy(gbMonth[m], "week")
@@ -783,7 +783,7 @@ export default {
                     
                     break;
 
-                case 'monthly':
+                case 'Monthly':
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
                         this.gbProject = this.groupBy(gbMonth[m], "project")
@@ -870,7 +870,7 @@ export default {
             }
         },
         checkGraphTypeOpt () {
-            
+
         }
     }
 
