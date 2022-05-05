@@ -24,18 +24,20 @@
                             label="Please select names"
                             prepend-inner-icon="person"
                             >
-                            <!-- <template v-slot:item="{ item, on, attrs }"> -->
-                                <!-- <v-list-item v-on="on" v-bind="attrs">
+
+                            <!-- <template v-slot:item="{ nameList, selectedNames, on, attrs }">
+                                 <v-list-item v-on="on" v-bind="attrs">
                                 <v-list-item-icon>
                                     <v-icon>
-                                    {{ select.includes(item) ? 'checked' : 'uncheck' }}
+                                    {{ nameList.includes(selectedNames) ? 'checked' : 'uncheck' }}
                                     </v-icon>
                                 </v-list-item-icon>
                                 <v-list-item-content>
-                                    <v-list-item-title v-text="item" class="text-left"></v-list-item-title>
+                                    <v-list-item-title v-text="selectedNames" class="text-left"></v-list-item-title>
                                 </v-list-item-content>
-                                </v-list-item> -->
-                            <!-- </template> -->
+                                </v-list-item>
+                            </template> -->
+
                             </v-select>
                         </v-col>
 
@@ -50,8 +52,39 @@
                             multiple
                             label="Please select projects"
                             prepend-inner-icon="summarize"
-                            ></v-autocomplete>
+                            >
+
+                            <!-- <template v-slot:item="{ projects, on, attrs }">
+                                 <v-list-item v-on="on" v-bind="attrs">
+                                <v-list-item-icon>
+                                    <v-icon>
+                                    {{ selectedProjects.includes(projects) ? 'checked' : 'uncheck' }}
+                                    </v-icon>
+                                </v-list-item-icon>
+                                <v-list-item-content>
+                                    <v-list-item-title v-text="projects" class="text-left"></v-list-item-title>
+                                </v-list-item-content>
+                                </v-list-item>
+                            </template>  -->
+
+                            </v-autocomplete>
                         </v-col>
+                    </v-row>
+
+                    <v-row
+                    class="mt-0">
+                        <v-col
+                        align-self="start"
+                        cols="12"
+                        md="12">
+                        <v-select
+                        outlined
+                        dense
+                        v-model="graphType"
+                        :items="graphTypes"
+                        label="Please select type"
+                        prepend-inner-icon="bar_chart"
+                        ></v-select></v-col>
                     </v-row>
 
                     <v-row
@@ -183,13 +216,15 @@ export default {
               intersect: false
             },
             xaxis: {
-              categories: ''
+              categories: []
 
             },
             colors: []
         },
         result: [],
-        showDates: []
+        showDates: [],
+        graphType: '',
+        graphTypes: ["daily", "weekly", "monthly"]
         
     }),
     methods: {
@@ -297,6 +332,7 @@ export default {
             this.data = []
             this.series = []
             this.result = []
+            this.chartOptions.xaxis.categories = []
             let datesArr = this.changeFormat(this.dates)
             let firstArr, secondArr
             firstArr = datesArr[0].split("-")
@@ -328,59 +364,12 @@ export default {
             if (this.selectedNames.length > 0){
                 if (this.selectedProjects.length > 0){
                     // select name and project
-                    this.chartOptions.xaxis.categories = this.selectedNames
-                    this.gbName = this.groupBy(this.data, "name")
-                    for (const p of this.selectedProjects){
-                        for (const n of this.selectedNames){
-                            sum = 0
-                            if (this.gbName[n]){
-                                arr = this.groupBy(this.gbName[n], "project")
-                                if (!arr[p]){
-                                    sum = 0
-                                }else{
-                                    for (const num of arr[p]){
-                                        sum = sum + parseFloat(num.work)
-                                    }
-                                }
-                            }else{
-                                sum = 0
-                            }
-                            this.result[index].push(sum)
-                        }
-                        index++
-                    }
+                    this.createDataNP()
                     this.randomColors()
                     this.createSeries()
                 }else{
                     //select name
-                    let cateArr = []
-                    this.chartOptions.xaxis.categories = this.selectedNames
-                    this.gbName = this.groupBy(this.data, "name")
-                    for (const n of this.selectedNames){
-                        arr = this.groupBy(this.gbName[n], "project")
-                        cateArr = cateArr.concat(Object.keys(arr))
-                    }
-                    this.selectedProjects = cateArr.filter(this.onlyUnique)
-                    this.createResult()
-                    for (const p of this.selectedProjects){
-                        for (const n of this.selectedNames){
-                            sum = 0
-                            if (this.gbName[n]){
-                                arr = this.groupBy(this.gbName[n], "project")
-                                if (!arr[p]){
-                                    sum = 0
-                                }else{
-                                    for (const num of arr[p]){
-                                        sum = sum + parseFloat(num.work)
-                                    }
-                                }
-                            }else{
-                                sum = 0
-                            }
-                            this.result[index].push(sum)
-                        }
-                        index++
-                    }
+                    this.createDataN()
                     this.randomColors()
                     this.createSeries()
                     this.selectedProjects = []
@@ -388,38 +377,12 @@ export default {
             }else{
                 if (this.selectedProjects.length > 0){
                     //select project
-                    this.chartOptions.xaxis.categories = ["projects"]
-                    this.gbProject = this.groupBy(this.data, "project")
-                    for (const n of this.selectedProjects){
-                        sum = 0
-                        if(this.gbProject[n]){
-                            for (const m of this.gbProject[n]){
-                                sum = sum + parseFloat(m.work)
-                            }
-                        }else{
-                            sum = 0
-                        }
-                        this.result[index].push(sum)
-                        index++
-                    }
+                    this.createDataP()
                     this.randomColors()
                     this.createSeries()
                 }else{
                     //select date range
-                    this.gbProject = this.groupBy(this.data, "project")
-                    this.selectedProjects = Object.keys(this.gbProject)
-                    console.log(this.selectedProjects);
-                    this.createResult()
-                    for (const n of this.selectedProjects){
-                        for (const m of this.gbProject[n]){
-                            sum = sum + parseFloat(m.work)
-                        }
-
-                        this.result[index].push(sum)
-                        sum=0
-                        index++
-                    }
-                    this.chartOptions.xaxis.categories = ["projects"]
+                    this.createData()
                     this.randomColors()
                     this.createSeries()
                     this.selectedProjects = []
@@ -476,7 +439,7 @@ export default {
         },
         randomColors () {
             let letters = '0123456789ABCDEF';
-            let color = '#';
+            let color
             for (const p of this.selectedProjects){
                 color = '#'
                 for (var i = 0; i < 6; i++) {
@@ -484,6 +447,198 @@ export default {
                 }
                 this.chartOptions.colors.push(color)
             }
+        },
+        createDataNP () {
+            let sum 
+            let index = 0
+            let arr = []
+            this.chartOptions.xaxis.categories = this.selectedNames
+            this.gbName = this.groupBy(this.data, "name")
+            for (const p of this.selectedProjects){
+                for (const n of this.selectedNames){
+                    sum = 0
+                    if (this.gbName[n]){
+                        arr = this.groupBy(this.gbName[n], "project")
+                        if (!arr[p]){
+                            sum = 0
+                        }else{
+                            for (const num of arr[p]){
+                                sum = sum + parseFloat(num.work)
+                            }
+                        }
+                    }else{
+                        sum = 0
+                    }
+                    this.result[index].push(sum)
+                }
+                index++
+            }
+            switch (this.graphType) {
+                case 'daily':
+                    
+                    break;
+
+                case 'weekly':
+                    
+                    break;
+
+                case 'monthly':
+            
+                    break;
+
+                default:
+
+                    break;
+            }
+        },
+        createDataN () {
+            let sum 
+            let index = 0
+            let arr = []
+            let cateArr = []
+            this.chartOptions.xaxis.categories = this.selectedNames
+            this.gbName = this.groupBy(this.data, "name")
+            for (const n of this.selectedNames){
+                arr = this.groupBy(this.gbName[n], "project")
+                cateArr = cateArr.concat(Object.keys(arr))
+            }
+            this.selectedProjects = cateArr.filter(this.onlyUnique)
+            this.createResult()
+            for (const p of this.selectedProjects){
+                for (const n of this.selectedNames){
+                    sum = 0
+                    if (this.gbName[n]){
+                        arr = this.groupBy(this.gbName[n], "project")
+                        if (!arr[p]){
+                            sum = 0
+                        }else{
+                            for (const num of arr[p]){
+                                sum = sum + parseFloat(num.work)
+                            }
+                        }
+                    }else{
+                        sum = 0
+                    }
+                    this.result[index].push(sum)
+                }
+                index++
+            }
+
+        },
+        createDataP () {
+            let sum
+            let index = 0
+            let gbMonth,gbDate,gbWeek
+            switch (this.graphType) {
+                case 'daily':
+                    gbMonth = this.groupBy(this.data, "month")
+                    for (const m in gbMonth){
+                        gbDate = this.groupBy(gbMonth[m], "date")
+                        for (const d in gbDate){
+                            this.gbProject = this.groupBy(gbDate[d], "project")
+                            index=0
+                            for (const p of this.selectedProjects){
+                                if (this.gbProject[p]){
+                                    sum = 0
+                                    for (const n of this.gbProject[p] ){
+                                        sum = sum + parseFloat(n.work)
+                                    }
+                                    this.result[index].push(sum)
+                                }else{
+                                    this.result[index].push(0)
+                                }
+                                index++
+                            }
+
+                        this.chartOptions.xaxis.categories.push(`${d}/${parseInt(m)}`)
+                        }
+                    }
+                    
+                    break;
+
+                case 'weekly':
+                    gbMonth = this.groupBy(this.data, "month")
+                    for (const m in gbMonth){
+                        gbWeek = this.groupBy(gbMonth[m], "week")
+                        for (const w in gbWeek){
+                            this.gbProject = this.groupBy(gbWeek[w], "project")
+                            index=0
+                            for (const p of this.selectedProjects){
+                                if (this.gbProject[p]){
+                                    sum = 0
+                                    for (const n of this.gbProject[p] ){
+                                        sum = sum + parseFloat(n.work)
+                                    }
+                                    this.result[index].push(sum)
+                                }else{
+                                    this.result[index].push(0)
+                                }
+                                index++
+                            }
+
+                        this.chartOptions.xaxis.categories.push(`week:${w}/${parseInt(m)}`)
+                        }
+                    }
+                    
+                    break;
+
+                case 'monthly':
+                    gbMonth = this.groupBy(this.data, "month")
+                    for (const m in gbMonth){
+                        this.gbProject = this.groupBy(gbMonth[m], "project")
+                        index=0
+                        for (const p of this.selectedProjects){
+                            if (this.gbProject[p]){
+                                sum = 0
+                                for (const n of this.gbProject[p] ){
+                                    sum = sum + parseFloat(n.work)
+                                }
+                                this.result[index].push(sum)
+                            }else{
+                                this.result[index].push(0)
+                            }
+                            index++
+                        }
+
+                        this.chartOptions.xaxis.categories.push(`month:${parseInt(m)}`)
+                        
+                    }
+                    break;
+
+                default:
+                    this.chartOptions.xaxis.categories = ["projects"]
+                    this.gbProject = this.groupBy(this.data, "project")
+                    for (const n of this.selectedProjects){
+                        sum = 0
+                        if(this.gbProject[n]){
+                            for (const m of this.gbProject[n]){
+                                sum = sum + parseFloat(m.work)
+                            }
+                        }else{
+                            sum = 0
+                        }
+                        this.result[index].push(sum)
+                        index++
+                    }
+                    break;
+            }
+        },
+        createData () {
+            let sum 
+            let index = 0
+            this.gbProject = this.groupBy(this.data, "project")
+            this.selectedProjects = Object.keys(this.gbProject)
+            this.createResult()
+            for (const n of this.selectedProjects){
+                for (const m of this.gbProject[n]){
+                    sum = sum + parseFloat(m.work)
+                }
+
+                this.result[index].push(sum)
+                sum=0
+                index++
+            }
+            this.chartOptions.xaxis.categories = ["projects"]
         }
     }
 
