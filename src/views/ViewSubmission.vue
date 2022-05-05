@@ -178,37 +178,41 @@ export default {
         },
         //bugs date format for check range
         findRange () {
+            let firstFormat = `${this.firstMonth}/${this.firstDay}/${this.year}`
+            let lastFormat = `${this.lastMonth}/${this.firstDay}/${this.year}`
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
+                console.log(moment(`${this.firstMonth}/${this.firstDay}/${this.year}`).format('MMM'));
                 this.dateRange.push({
                     date: this.firstDay,
                     month: this.firstMonth,
-                    monthShow: moment(`${this.firstMonth}`).format('MMM')});
+                    monthShow: moment(firstFormat).format('MMM')
+                    });
             }else{
                 if (this.firstMonth == this.lastMonth){
                     for (let i = this.firstDay; i <= this.lastDay; i++){
-                        if (moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Saturday"  && moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Sunday"){
+                        if (moment(`${this.firstMonth}/${i}/${this.year}`).format("dddd") != "Saturday"  && moment(`${this.firstMonth}/${i}/${this.year}`).format("dddd") != "Sunday"){
                             this.dateRange.push({
                             date: i,
                             month: this.firstMonth,
-                            monthShow: moment(`${this.firstMonth}`).format('MMM')})
+                            monthShow: moment(firstFormat).format('MMM')})
                         }
                     }
                 }else{
                     if (this.lastMonth-this.firstMonth == 1){
                         for (let i = this.firstDay; i <= parseInt(moment(`${this.year}-${this.firstMonth}`, "YYYY-M").daysInMonth()); i++){
-                            if (moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Saturday"  && moment(`${this.year}-${this.firstMonth}-${i}`).format("dddd") != "Sunday"){
+                            if (moment(`${this.firstMonth}/${i}/${this.year}`).format("dddd") != "Saturday"  && moment(`${this.firstMonth}/${i}/${this.year}`).format("dddd") != "Sunday"){
                                 this.dateRange.push({
                                 date: i,
                                 month: this.firstMonth,
-                                monthShow: moment(`${this.firstMonth}`).format('MMM')})
+                                monthShow: moment(firstFormat).format('MMM')})
                             }
                         }
                         for (let i = 1; i <= this.lastDay; i++){
-                            if (moment(`${this.year}-${this.lastMonth}-${i}`).format("dddd") != "Saturday"  && moment(`${this.year}-${this.lastMonth}-${i}`).format("dddd") != "Sunday"){
+                            if (moment(`${this.lastMonth}/${i}/${this.year}`).format("dddd") != "Saturday"  && moment(`${this.lastMonth}/${i}/${this.year}`).format("dddd") != "Sunday"){
                                 this.dateRange.push({
                                 date: i,
                                 month: this.lastMonth,
-                                monthShow: moment(`${this.lastMonth}`).format('MMM')})
+                                monthShow: moment(lastFormat).format('MMM')})
                             }
                         }
                     }else{
@@ -225,14 +229,14 @@ export default {
                         //the number of days in last month
                         daySum = daySum + this.lastDay
                         for (let i = 0; i <= daySum; i++){
-                            d = moment(`${this.year}-${this.firstMonth}-${this.firstDay}`).add(i, 'days').format("D")
-                            m = moment(`${this.year}-${this.firstMonth}-${this.firstDay}`).add(i, 'days').format("M")
-                            dow = moment(`${this.year}-${this.firstMonth}-${this.firstDay}`).add(i, 'days').format("dddd")
+                            d = parseInt(moment(firstFormat).add(i, 'days').format("D"))
+                            m = parseInt(moment(firstFormat).add(i, 'days').format("M"))
+                            dow = moment(firstFormat).add(i, 'days').format("dddd")
                             if (!(dow == "Saturday" || dow == "Sunday")){
                                 this.dateRange.push({
                                     date: d,
                                     month: m,
-                                    monthShow: moment(`${m}`).format('MMM')})
+                                    monthShow: moment(`${m}/${d}/${this.year}`).format('MMM')})
                             }
                         }
                     }
@@ -278,6 +282,7 @@ export default {
                 for (let i = 0; i < this.dateRange.length; i++){
                     if (data.date == this.dateRange[i].date && data.month == this.dateRange[i].month){
                         m = i
+                        console.log(m);
                         break;
                     }
                 }
