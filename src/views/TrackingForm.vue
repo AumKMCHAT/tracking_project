@@ -31,14 +31,17 @@
                         ></Select>
                     </v-col>
 
-                    <v-col cols="12" sm="8">
-                        <Select
+                    <v-col cols="12" sm="8"
+                    align-self="center"
+                    >
+                        Department: {{department}}
+                        <!-- <Select
                         :value="department"
                         :items="allDepartments"
                         rule="Department is required!"
                         label="Department"
                         :readonly="true"
-                        ></Select>
+                        ></Select> -->
                     </v-col>
                 </v-row>
 
@@ -197,6 +200,7 @@ export default {
         selectedProjects: [{project: '',work: ''},{project: '',work: ''},{project: '',work: ''}],
         today: moment().format('YYYY-MM-DD'),
         date: '',
+        week: '',
         month: '',
         year: moment().format("YYYY"),
         form: true,
@@ -220,16 +224,48 @@ export default {
                 day = moment(item).format('ddd')
                 switch (day) {
                     case "Tue":
-                        format = moment(item).format("ddd\xa0\xa0DD MMM YYYY")
+                        format = `${moment(item).format("ddd\xa0\xa0DD MMM YYYY")} ` + 
+                                    `(${moment(item).calendar(null, {
+                                        lastDay: '[Yesterday]',
+                                        sameDay: '[Today]',
+                                        nextDay: '[Tomorrow]',
+                                        lastWeek: '[last] dddd',
+                                        nextWeek: 'dddd',
+                                        sameElse: 'L'
+                                    })})`
                         break;
                     case "Thu":
-                        format = moment(item).format("ddd\xa0\xa0DD MMM YYYY")
+                        format = `${moment(item).format("ddd\xa0\xa0DD MMM YYYY")} ` + 
+                                    `(${moment(item).calendar(null, {
+                                        lastDay: '[Yesterday]',
+                                        sameDay: '[Today]',
+                                        nextDay: '[Tomorrow]',
+                                        lastWeek: '[last] dddd',
+                                        nextWeek: 'dddd',
+                                        sameElse: 'L'
+                                    })})`
                         break;
                     case "Fri":
-                        format = moment(item).format(`ddd\xa0\xa0\xa0\xa0DD MMM YYYY`)
+                        format = `${moment(item).format(`ddd\xa0\xa0\xa0\xa0DD MMM YYYY`)} ` + 
+                                    `(${moment(item).calendar(null, {
+                                        lastDay: '[Yesterday]',
+                                        sameDay: '[Today]',
+                                        nextDay: '[Tomorrow]',
+                                        lastWeek: '[last] dddd',
+                                        nextWeek: 'dddd',
+                                        sameElse: 'L'
+                                    })})`
                         break;
                     default:
-                        format = moment(item).format("ddd DD MMM YYYY")
+                        format = `${moment(item).format("ddd DD MMM YYYY")} ` + 
+                                    `(${moment(item).calendar(null, {
+                                        lastDay: '[Yesterday]',
+                                        sameDay: '[Today]',
+                                        nextDay: '[Tomorrow]',
+                                        lastWeek: '[last] dddd',
+                                        nextWeek: 'dddd',
+                                        sameElse: 'L'
+                                    })})`
                         break;
                 }
                 date = {
@@ -283,13 +319,20 @@ export default {
             this.submitted = false
             this.isSubmitting = true
             var sum = 0;
+            let msg = `<h4>${moment(this.selectedDate).format("dddd D MMMM YYYY")}</h4>` + "<br/>"
             for (let i = 0; i<this.selectedProjects.length; i++){
                 sum = sum + this.selectedProjects[i].work
             }
             if (this.$refs.form.validate()) {
                 if (sum == 1){
+                    for (const p of this.selectedProjects){
+                        if(p.project != '' && p.work != ''){
+                            msg = msg + `${p.project} ` + `( ${p.work*8} ${p.work*8>1?'hrs':'hr'} )<br/>`
+                        }
+                    }
                     Swal.fire({
                         title: 'Do you want to submit this form?',
+                        html: msg,
                         showDenyButton: true,
                         showCancelButton: false,
                         reverseButtons: true,
@@ -416,6 +459,7 @@ export default {
                 if (this.selectedProjects[i].project != '' && this.selectedProjects[i].work != ''){
                     row = {
                         date: this.date,
+                        week: this.week,
                         month: this.month,
                         project: this.selectedProjects[i].project,
                         work: this.selectedProjects[i].work,
@@ -424,6 +468,7 @@ export default {
                         remark: msg,
                     }
                     this.data.push(row)
+                    console.log(row);
                 }
             }
             console.log(this.data);
@@ -495,8 +540,42 @@ export default {
                 }
             }
             let arr = this.selectedDate.split("-")
+            let m
             this.date = parseInt(arr[2])
             this.month = parseInt(arr[1])
+            let dateFormat = `${this.month}/${this.date}/${this.year}`
+            let firstOfMonth = moment(`${this.month}/1/${this.year}`).format('dddd')
+            let day = moment(dateFormat).format('dddd')
+            switch (day) {
+                case "Wednesday":
+                    this.week = moment(dateFormat).week() - moment(dateFormat).startOf('month').weeks()+1;
+                    m = moment(dateFormat).format('M')
+                    break;
+                case "Thursday":
+                    this.week = moment(dateFormat).subtract(1, 'days').week() - moment(dateFormat).startOf('month').weeks()+1;
+                    m = moment(dateFormat).subtract(1, 'days').format('M')
+                    break;
+                case "Friday":
+                    this.week = moment(dateFormat).subtract(2, 'days').week() - moment(dateFormat).startOf('month').weeks()+1;
+                    m = moment(dateFormat).subtract(2, 'days').format('M')
+                    break;
+                case "Monday":
+                    this.week = moment(dateFormat).add(2, 'days').week() - moment(dateFormat).startOf('month').weeks()+1;
+                    m = moment(dateFormat).add(2, 'days').format('M')
+                    break;
+                case "Tuesday":
+                    this.week = moment(dateFormat).add(1, 'days').week() - moment(dateFormat).startOf('month').weeks()+1;
+                    m = moment(dateFormat).add(1, 'days').format('M')
+                    break;
+            
+                default:
+                    this.week = 0
+                    break;
+            }
+            firstOfMonth = moment(`${m}/1/${this.year}`).format('dddd')
+            if ((firstOfMonth == "Thursday" || firstOfMonth == "Friday")&& this.week != 1){
+                this.week = this.week - 1
+            }
         },
         async genDateOpt () {
             this.dateOpt = []
