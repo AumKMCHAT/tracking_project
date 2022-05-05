@@ -1,6 +1,7 @@
 <template>
   <div id="app">
    <v-app>
+     <Manu></Manu>
      <Loading></Loading>
      <router-view></router-view>
    </v-app>
@@ -9,11 +10,13 @@
 
 <script>
 import Loading from './components/Loading.vue'
+import Manu from './components/Manu.vue'
 
 export default {
   name: 'App',
   components: {
-    Loading
+    Loading,
+    Manu
   },
   data: () => ({
     text: 'Hello world'
