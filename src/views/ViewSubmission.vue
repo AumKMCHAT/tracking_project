@@ -181,7 +181,6 @@ export default {
             let firstFormat = `${this.firstMonth}/${this.firstDay}/${this.year}`
             let lastFormat = `${this.lastMonth}/${this.firstDay}/${this.year}`
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
-                console.log(moment(`${this.firstMonth}/${this.firstDay}/${this.year}`).format('MMM'));
                 this.dateRange.push({
                     date: this.firstDay,
                     month: this.firstMonth,
@@ -282,7 +281,6 @@ export default {
                 for (let i = 0; i < this.dateRange.length; i++){
                     if (data.date == this.dateRange[i].date && data.month == this.dateRange[i].month){
                         m = i
-                        console.log(m);
                         break;
                     }
                 }
