@@ -19,7 +19,7 @@
             lazy-validation
             >
                 <v-row>
-                    <v-col cols="12" sm="4">
+                    <v-col cols="12" sm="6">
                         <Select
                         :value="name"
                         :items="formattedNameOpt"
@@ -31,7 +31,7 @@
                         ></Select>
                     </v-col>
 
-                    <v-col cols="12" sm="8"
+                    <v-col cols="12" sm="6"
                     align-self="center"
                     >
                         Department: {{department}}

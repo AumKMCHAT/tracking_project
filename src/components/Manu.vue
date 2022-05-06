@@ -4,8 +4,8 @@
         background-color="#11b8b8"
         :value="$route.path"
         dark
-        next-icon="mdi-arrow-right-bold-box-outline"
-        prev-icon="mdi-arrow-left-bold-box-outline"
+        next-icon="chevron_right"
+        prev-icon="chevron_left"
         show-arrows>
 
             <v-tabs-slider color="yellow"></v-tabs-slider>
