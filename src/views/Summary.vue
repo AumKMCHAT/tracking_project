@@ -8,10 +8,13 @@
 
             <v-form>
                 <v-container>
-                    <v-row>
+                    <v-row
+                    class="mb-0">
                         <v-col
                         cols="12"
                         md="5"
+                        align-self="center"
+                        class="pb-1"
                         >
                             <v-select
                             outlined
@@ -24,8 +27,8 @@
                             label="Employees"
                             prepend-inner-icon="person"
                             @change="genProjectOpt"
+                            hide-details
                             >
-
                             <!-- <template v-slot:item="{ nameList, selectedNames, on, attrs }">
                                  <v-list-item v-on="on" v-bind="attrs">
                                 <v-list-item-icon>
@@ -38,13 +41,13 @@
                                 </v-list-item-content>
                                 </v-list-item>
                             </template> -->
-
                             </v-select>
                         </v-col>
 
                         <v-col
                         cols="12"
-                        md="7">
+                        md="7"
+                        class="pb-1">
                             <v-autocomplete
                             outlined
                             dense
@@ -53,6 +56,7 @@
                             multiple
                             label="Projects"
                             prepend-inner-icon="summarize"
+                            hide-details
                             >
 
                             <!-- <template v-slot:item="{ projects, on, attrs }">
@@ -67,15 +71,12 @@
                                 </v-list-item-content>
                                 </v-list-item>
                             </template>  -->
-
                             </v-autocomplete>
                         </v-col>
                     </v-row>
 
-
-
                     <v-row
-                    class="mt-0">
+                    class="">
                         <v-col
                         align-self="start"
                         cols="12"
@@ -93,8 +94,8 @@
                         </v-col>
                     </v-row>
 
-                                        <v-row
-                    class="mt-0">
+                    <v-row
+                    class="">
                         <v-col
                         align-self="start"
                         cols="12"
@@ -110,7 +111,8 @@
                         ></v-select></v-col>
                     </v-row>
 
-                    <v-row justify="end">
+                    <v-row justify="end"
+                    class="mt-0">
                         <v-col
                         cols="12"
                         md="2"
@@ -129,16 +131,11 @@
 
             </v-form>
 
-            <v-card v-if="series.length > 0">
-                <v-card-title
-                class="justify-center 
-                text-h6
-                text-sm-h4">{{formatDateShow()}}</v-card-title>
-                <apexchart 
-                type="bar" 
+            <v-card v-if="chartOptions.series.length > 0">
+                <highcharts 
                 :options="chartOptions" 
-                :series="series">
-                </apexchart> 
+                >
+                </highcharts> 
             </v-card>
         </v-card>
     </div>
@@ -151,10 +148,12 @@ import axios from 'axios'
 import { sheetUrl } from '../store/constants'
 import DatePicker from 'vue2-datepicker'
 import 'vue2-datepicker/index.css'
+import {Chart} from 'highcharts-vue'
 
 export default {
     components: {
-        DatePicker 
+        DatePicker,
+        highcharts: Chart 
     },
     beforeMount () {
         this.getProjects(),
@@ -186,19 +185,30 @@ export default {
         lastMonth: '',
         gbName: '',
         gbProject: '',
-        series: [],
         chartOptions: {
+            series: [],
             chart: {
               type: 'bar',
               height: '100%'
             },
+            title: {
+                text: ''
+            },
             plotOptions: {
               bar: {
                 horizontal: true,
-                columnWidth: '50%',
+                groupPadding: 1,
                 dataLabels: {
-                  position: 'center',
+                    enabled: true,
+                    position: 'center',
+                    formatter: function () {
+                        return (this.y!=0)?this.y + " ( " + this.y*8 +  " hrs )":""
+                    },
                 },
+              },
+              series: {
+                  pointWidth: 23, 
+                  stacking: 'normal'
               }
             },
             dataLabels: {
@@ -207,9 +217,6 @@ export default {
                 style: {
                     fontSize: '12px',
                     colors: ['#fff']
-                },
-                formatter: function (val) {
-                    return val + " ( " + val*8 +  " hrs )"
                 },
             },
             stroke: {
@@ -221,11 +228,15 @@ export default {
               shared: true,
               intersect: false
             },
-            xaxis: {
+            xAxis: {
               categories: []
 
             },
-            colors: []
+            yAxis: {
+                title: {
+                    text: 'Unit'
+                },
+            },
         },
         result: [],
         showDates: [],
@@ -337,9 +348,9 @@ export default {
         validate () {
             this.showDates = this.dates
             this.data = []
-            this.series = []
+            this.chartOptions.series = []
             this.result = []
-            this.chartOptions.xaxis.categories = []
+            this.chartOptions.xAxis.categories = []
             let datesArr = this.changeFormat(this.dates)
             let firstArr, secondArr
             firstArr = datesArr[0].split("-")
@@ -372,12 +383,12 @@ export default {
                 if (this.selectedProjects.length > 0){
                     // select name and project
                     this.createDataNP()
-                    this.randomColors()
+                    //this.randomColors()
                     this.createSeries()
                 }else{
                     //select name
                     this.createDataN()
-                    this.randomColors()
+                    //this.randomColors()
                     this.createSeries()
                     this.selectedProjects = []
                 }
@@ -385,12 +396,12 @@ export default {
                 if (this.selectedProjects.length > 0){
                     //select project
                     this.createDataP()
-                    this.randomColors()
+                    //this.randomColors()
                     this.createSeries()
                 }else{
                     //select date range
                     this.createData()
-                    this.randomColors()
+                    //this.randomColors()
                     this.createSeries()
                     this.selectedProjects = []
                 }
@@ -423,9 +434,10 @@ export default {
                 let obj = new Object()
                 obj.name = p
                 obj.data = this.result[index]
-                this.series.push(obj)
+                this.chartOptions.series.push(obj)
                 index++
             }
+            this.chartOptions.title.text = this.formatDateShow()
             this.isLoading = false
         },
         createResult () {
@@ -486,7 +498,7 @@ export default {
                                 }
                             }
 
-                        this.chartOptions.xaxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
                         }
                     }
                     break;
@@ -516,7 +528,7 @@ export default {
                                     }
                                 }
                             }
-                        this.chartOptions.xaxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
                         }
                     }
                     break;
@@ -544,13 +556,13 @@ export default {
                                     }
                                 }
                             }
-                        this.chartOptions.xaxis.categories.push(`month:${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
                         
                     }
                     break;
 
                 default:
-                    this.chartOptions.xaxis.categories = this.selectedNames
+                    this.chartOptions.xAxis.categories = this.selectedNames
                     this.gbName = this.groupBy(this.data, "name")
                     for (const p of this.selectedProjects){
                         for (const n of this.selectedNames){
@@ -617,7 +629,7 @@ export default {
                                 }
                             }
 
-                        this.chartOptions.xaxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
                         }
                     }
                     break;
@@ -655,7 +667,7 @@ export default {
                                     }
                                 }
                             }
-                        this.chartOptions.xaxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
                         }
                     }
                     
@@ -692,13 +704,13 @@ export default {
                                     }
                                 }
                             }
-                        this.chartOptions.xaxis.categories.push(`month:${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
                         
                     }
                     break;
 
                 default:
-                    this.chartOptions.xaxis.categories = this.selectedNames
+                    this.chartOptions.xAxis.categories = this.selectedNames
                     this.gbName = this.groupBy(this.data, "name")
                     for (const n of this.selectedNames){
                         arr = this.groupBy(this.gbName[n], "project")
@@ -754,7 +766,7 @@ export default {
                                 index++
                             }
 
-                        this.chartOptions.xaxis.categories.push(`${d}/${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`${d}/${parseInt(m)}`)
                         }
                     }
                     
@@ -780,7 +792,7 @@ export default {
                                 index++
                             }
 
-                        this.chartOptions.xaxis.categories.push(`week:${w}/${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`week:${w}/${parseInt(m)}`)
                         }
                     }
                     
@@ -804,13 +816,13 @@ export default {
                             index++
                         }
 
-                        this.chartOptions.xaxis.categories.push(`month:${parseInt(m)}`)
+                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
                         
                     }
                     break;
 
                 default:
-                    this.chartOptions.xaxis.categories = ["projects"]
+                    this.chartOptions.xAxis.categories = ["projects"]
                     this.gbProject = this.groupBy(this.data, "project")
                     for (const n of this.selectedProjects){
                         sum = 0
@@ -842,7 +854,7 @@ export default {
                 sum=0
                 index++
             }
-            this.chartOptions.xaxis.categories = ["projects"]
+            this.chartOptions.xAxis.categories = ["projects"]
         },
         async genProjectOpt () {
             let res = await axios.get(sheetUrl + '/tabs/projectsSheet')  
