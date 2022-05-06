@@ -857,6 +857,7 @@ export default {
             this.chartOptions.xAxis.categories = ["projects"]
         },
         async genProjectOpt () {
+            this.selectedProjects = ''
             let res = await axios.get(sheetUrl + '/tabs/projectsSheet')  
             if (this.selectedNames.length > 0){
                 this.projects = []
