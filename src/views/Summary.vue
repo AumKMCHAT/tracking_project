@@ -188,15 +188,14 @@ export default {
         chartOptions: {
             series: [],
             chart: {
-              type: 'bar',
-              height: '100%'
+              type: 'column',
+              height: '50%'
             },
             title: {
                 text: ''
             },
             plotOptions: {
-              bar: {
-                horizontal: true,
+              column: {
                 groupPadding: 1,
                 dataLabels: {
                     enabled: true,
@@ -208,7 +207,6 @@ export default {
               },
               series: {
                   pointWidth: 23, 
-                  stacking: 'normal'
               }
             },
             dataLabels: {
@@ -229,7 +227,8 @@ export default {
               intersect: false
             },
             xAxis: {
-              categories: []
+                categories: [],
+
 
             },
             yAxis: {
