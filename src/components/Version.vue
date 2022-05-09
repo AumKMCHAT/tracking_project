@@ -11,10 +11,11 @@
         <v-btn
           color="#11b8b8"
           dark
+          elevation="0"
           v-bind="attrs"
           v-on="on"
         >
-          KISRA Tracking project | v1.0 (2022/5/6)
+          KISRA Tracking project | v1.1 (2022/5/9)
         </v-btn>
       </template>
 
@@ -24,7 +25,7 @@
         max-width="280">
         <h3>Version</h3>
         <div>
-        v1.1 (2022/5/) <br>
+        v1.1 (2022/5/9) <br>
         - เพิ่มการคำนวณสัปดาห์สำหรับฟอร์ม <br>
         - เปลี่ยนชื่อใน manu tab และ ชื่อหัวข้อฟอร์ม <br>
         - เปลี่ยน font ใน cornfirm alert <br>

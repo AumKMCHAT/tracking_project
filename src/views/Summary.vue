@@ -102,6 +102,7 @@
                         md="12">
                         <v-select
                         outlined
+                        menu-props="offsetY"
                         clearable
                         dense
                         v-model="graphType"
@@ -109,6 +110,7 @@
                         label="Type"
                         prepend-inner-icon="bar_chart"
                         :disabled="selectedNames.length > 1"
+                        @click.clear="graphType = ''"
                         ></v-select></v-col>
                     </v-row>
 
@@ -137,7 +139,7 @@
                 <ul
                 v-for="(project, index) in projectsSum"
                 v-bind:key="index">
-                <li>{{project}}</li>
+                <li v-html="project"></li>
                 </ul>
                     <highcharts 
                     :options="chartOptions" 
@@ -418,7 +420,7 @@ export default {
             if (!this.pieChart){
                 for (const p of this.chartOptions.series){
                     sum = p.data.reduce((a, b) => a + b, 0)
-                    msg = `${p.name}: ${sum} (${sum*8} hrs)`
+                    msg = `${p.name}: <span class="blue--text">${sum}</span> (<span class="green--text">${sum*8}</span> hrs)`
                     this.projectsSum.push(msg)
                 }  
             }
