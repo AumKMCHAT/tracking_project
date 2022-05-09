@@ -102,6 +102,7 @@
                         md="12">
                         <v-select
                         outlined
+                        clearable
                         dense
                         v-model="graphType"
                         :items="graphTypes"
@@ -131,12 +132,30 @@
 
             </v-form>
 
-            <v-card v-if="chartOptions.series.length > 0">
-                <highcharts 
-                :options="chartOptions" 
-                >
-                </highcharts> 
+            <v-card v-if="chartOptions.series.length > 0"
+                class="pa-2">
+                <ul
+                v-for="(project, index) in projectsSum"
+                v-bind:key="index">
+                <li>{{project}}</li>
+                </ul>
+                    <highcharts 
+                    :options="chartOptions" 
+                    >
+                    </highcharts> 
             </v-card>
+
+            <div
+            class="d-flex flex-wrap justify-space-between">
+
+            <v-card
+            v-for="(chart, index) in pieCharts" 
+            v-bind:key="index"
+            class="pieChart-card">
+                    <highcharts
+                    :options="chart.chartOptions"></highcharts>
+            </v-card>
+            </div>
         </v-card>
     </div>
     
@@ -196,39 +215,24 @@ export default {
             },
             plotOptions: {
               column: {
-                groupPadding: 1,
+                stacking: 'normal',
                 dataLabels: {
                     enabled: true,
                     position: 'center',
+                    pointPadding: 0.2,
+                    borderWidth: 0,
                     formatter: function () {
                         return (this.y!=0)?this.y + " ( " + this.y*8 +  " hrs )":""
                     },
                 },
-              },
-              series: {
-                  pointWidth: 23, 
+                pointWidth: 20,
+                series : {
+                    
+                }
               }
             },
-            dataLabels: {
-                enabled: true,
-                offsetX: -6,
-                style: {
-                    fontSize: '12px',
-                    colors: ['#fff']
-                },
-            },
-            stroke: {
-              show: true,
-              width: 1,
-              colors: ['#fff']
-            },
-            tooltip: {
-              shared: true,
-              intersect: false
-            },
             xAxis: {
-                categories: [],
-
+                categories: []
 
             },
             yAxis: {
@@ -236,11 +240,17 @@ export default {
                     text: 'Unit'
                 },
             },
+            scrollbar: {
+                enabled: true
+            },
         },
+        pieCharts: [],
         result: [],
         showDates: [],
         graphType: '',
-        graphTypes: ["Daily", "Weekly", "Monthly"]
+        graphTypes: ["Daily", "Weekly", "Monthly"],
+        pieChart: false,
+        projectsSum: []
         
     }),
     methods: {
@@ -345,6 +355,9 @@ export default {
             }
         },        
         validate () {
+            this.pieChart = false
+            this.pieCharts = []
+            this.projectsSum = []
             this.showDates = this.dates
             this.data = []
             this.chartOptions.series = []
@@ -375,19 +388,14 @@ export default {
             this.getData()
         },
         filterData () {
-            let index = 0
-            let arr
-            let sum = 0
             if (this.selectedNames.length > 0){
                 if (this.selectedProjects.length > 0){
                     // select name and project
                     this.createDataNP()
-                    //this.randomColors()
                     this.createSeries()
                 }else{
                     //select name
                     this.createDataN()
-                    //this.randomColors()
                     this.createSeries()
                     this.selectedProjects = []
                 }
@@ -395,15 +403,24 @@ export default {
                 if (this.selectedProjects.length > 0){
                     //select project
                     this.createDataP()
-                    //this.randomColors()
-                    this.createSeries()
+                    if (!this.pieChart){
+                        this.createSeries()  
+                    }
                 }else{
                     //select date range
                     this.createData()
-                    //this.randomColors()
                     this.createSeries()
                     this.selectedProjects = []
                 }
+            }
+            let msg = ''
+            let sum
+            if (!this.pieChart){
+                for (const p of this.chartOptions.series){
+                    sum = p.data.reduce((a, b) => a + b, 0)
+                    msg = `${p.name}: ${sum} (${sum*8} hrs)`
+                    this.projectsSum.push(msg)
+                }  
             }
         },
         filterDate () {
@@ -478,26 +495,9 @@ export default {
                         gbDate = this.groupBy(gbMonth[m], "date")
                         for (const d in gbDate){
                             this.gbName= this.groupBy(gbDate[d], "name")
-                            for (const n of this.selectedNames){
-                                if (this.gbName[n]){
-                                    index=0
-                                    this.gbProject = this.groupBy(this.gbName[n], "project")
-                                    for (const s of this.selectedProjects ){
-                                        if (this.gbProject[s]){
-                                            sum = 0
-                                            for (const p of this.gbProject[s]){
-                                                sum = sum + parseFloat(p.work)
-                                            }
-                                            this.result[index].push(sum)
-                                        }else{
-                                            this.result[index].push(0)
-                                        }
-                                        index++
-                                    }
-                                }
-                            }
+                            this.sumNP()
 
-                        this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
+                            this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
                         }
                     }
                     break;
@@ -509,25 +509,9 @@ export default {
                         gbWeek = this.groupBy(gbMonth[m], "week")
                         for (const w in gbWeek){
                             this.gbName= this.groupBy(gbWeek[w], "name")
-                            for (const n of this.selectedNames){
-                                if (this.gbName[n]){
-                                    index=0
-                                    this.gbProject = this.groupBy(this.gbName[n], "project")
-                                    for (const s of this.selectedProjects ){
-                                        if (this.gbProject[s]){
-                                            sum = 0
-                                            for (const p of this.gbProject[s]){
-                                                sum = sum + parseFloat(p.work)
-                                            }
-                                            this.result[index].push(sum)
-                                        }else{
-                                            this.result[index].push(0)
-                                        }
-                                        index++
-                                    }
-                                }
-                            }
-                        this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
+                            this.sumNP()
+
+                            this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
                         }
                     }
                     break;
@@ -537,25 +521,9 @@ export default {
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
                             this.gbName= this.groupBy(gbMonth[m], "name")
-                            for (const n of this.selectedNames){
-                                if (this.gbName[n]){
-                                    index=0
-                                    this.gbProject = this.groupBy(this.gbName[n], "project")
-                                    for (const s of this.selectedProjects ){
-                                        if (this.gbProject[s]){
-                                            sum = 0
-                                            for (const p of this.gbProject[s]){
-                                                sum = sum + parseFloat(p.work)
-                                            }
-                                            this.result[index].push(sum)
-                                        }else{
-                                            this.result[index].push(0)
-                                        }
-                                        index++
-                                    }
-                                }
-                            }
-                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
+                            this.sumNP()
+
+                            this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
                         
                     }
                     break;
@@ -595,13 +563,7 @@ export default {
 
             switch (this.graphType) {
                 case 'Daily':
-                    //find the number of projects
-                    this.gbName = this.groupBy(this.data, "name")
-                    for (const n of this.selectedNames){
-                        arr = this.groupBy(this.gbName[n], "project")
-                        cateArr = cateArr.concat(Object.keys(arr))
-                    }
-                    this.selectedProjects = cateArr.filter(this.onlyUnique)
+                    this.findProjects()
                     this.createResult()
                     //sum of work in each day
                     gbMonth = this.groupBy(this.data, "month")
@@ -609,24 +571,7 @@ export default {
                         gbDate = this.groupBy(gbMonth[m], "date")
                         for (const d in gbDate){
                             this.gbName= this.groupBy(gbDate[d], "name")
-                            for (const n of this.selectedNames){
-                                if (this.gbName[n]){
-                                    index=0
-                                    this.gbProject = this.groupBy(this.gbName[n], "project")
-                                    for (const s of this.selectedProjects ){
-                                        if (this.gbProject[s]){
-                                            sum = 0
-                                            for (const p of this.gbProject[s]){
-                                                sum = sum + parseFloat(p.work)
-                                            }
-                                            this.result[index].push(sum)
-                                        }else{
-                                            this.result[index].push(0)
-                                        }
-                                        index++
-                                    }
-                                }
-                            }
+                            this.sumNP()
 
                         this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
                         }
@@ -634,13 +579,7 @@ export default {
                     break;
 
                 case 'Weekly':
-                    //find the number of projects
-                    this.gbName = this.groupBy(this.data, "name")
-                    for (const n of this.selectedNames){
-                        arr = this.groupBy(this.gbName[n], "project")
-                        cateArr = cateArr.concat(Object.keys(arr))
-                    }
-                    this.selectedProjects = cateArr.filter(this.onlyUnique)
+                    this.findProjects()
                     this.createResult()
                     //sum of work in each week
                     gbMonth = this.groupBy(this.data, "month")
@@ -648,74 +587,31 @@ export default {
                         gbWeek = this.groupBy(gbMonth[m], "week")
                         for (const w in gbWeek){
                             this.gbName= this.groupBy(gbWeek[w], "name")
-                            for (const n of this.selectedNames){
-                                if (this.gbName[n]){
-                                    index=0
-                                    this.gbProject = this.groupBy(this.gbName[n], "project")
-                                    for (const s of this.selectedProjects ){
-                                        if (this.gbProject[s]){
-                                            sum = 0
-                                            for (const p of this.gbProject[s]){
-                                                sum = sum + parseFloat(p.work)
-                                            }
-                                            this.result[index].push(sum)
-                                        }else{
-                                            this.result[index].push(0)
-                                        }
-                                        index++
-                                    }
-                                }
-                            }
-                        this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
+                            this.sumNP()
+
+                            this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
                         }
                     }
                     
                     break;
 
                 case 'Monthly':
-                    //find the number of projects
-                    this.gbName = this.groupBy(this.data, "name")
-                    for (const n of this.selectedNames){
-                        arr = this.groupBy(this.gbName[n], "project")
-                        cateArr = cateArr.concat(Object.keys(arr))
-                    }
-                    this.selectedProjects = cateArr.filter(this.onlyUnique)
+                    this.findProjects()
                     this.createResult()
                     //sum of work in each month
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
                             this.gbName= this.groupBy(gbMonth[m], "name")
-                            for (const n of this.selectedNames){
-                                if (this.gbName[n]){
-                                    index=0
-                                    this.gbProject = this.groupBy(this.gbName[n], "project")
-                                    for (const s of this.selectedProjects ){
-                                        if (this.gbProject[s]){
-                                            sum = 0
-                                            for (const p of this.gbProject[s]){
-                                                sum = sum + parseFloat(p.work)
-                                            }
-                                            this.result[index].push(sum)
-                                        }else{
-                                            this.result[index].push(0)
-                                        }
-                                        index++
-                                    }
-                                }
-                            }
-                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
+                            this.sumNP()
+                        
+                            this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
                         
                     }
                     break;
 
                 default:
                     this.chartOptions.xAxis.categories = this.selectedNames
-                    this.gbName = this.groupBy(this.data, "name")
-                    for (const n of this.selectedNames){
-                        arr = this.groupBy(this.gbName[n], "project")
-                        cateArr = cateArr.concat(Object.keys(arr))
-                    }
-                    this.selectedProjects = cateArr.filter(this.onlyUnique)
+                    this.findProjects()
                     this.createResult()
                     for (const p of this.selectedProjects){
                         for (const n of this.selectedNames){
@@ -743,7 +639,11 @@ export default {
         createDataP () {
             let sum
             let index = 0
-            let gbMonth,gbDate,gbWeek
+            let gbMonth,gbDate,gbWeek,gbDepartment
+            let allSum = 0
+            let i = 0
+            let dpSum = []
+            let dataArr = []
             switch (this.graphType) {
                 case 'Daily':
                     gbMonth = this.groupBy(this.data, "month")
@@ -751,21 +651,9 @@ export default {
                         gbDate = this.groupBy(gbMonth[m], "date")
                         for (const d in gbDate){
                             this.gbProject = this.groupBy(gbDate[d], "project")
-                            index=0
-                            for (const p of this.selectedProjects){
-                                if (this.gbProject[p]){
-                                    sum = 0
-                                    for (const n of this.gbProject[p] ){
-                                        sum = sum + parseFloat(n.work)
-                                    }
-                                    this.result[index].push(sum)
-                                }else{
-                                    this.result[index].push(0)
-                                }
-                                index++
-                            }
+                            this.sumP()
 
-                        this.chartOptions.xAxis.categories.push(`${d}/${parseInt(m)}`)
+                            this.chartOptions.xAxis.categories.push(`${d}/${parseInt(m)}`)
                         }
                     }
                     
@@ -777,21 +665,9 @@ export default {
                         gbWeek = this.groupBy(gbMonth[m], "week")
                         for (const w in gbWeek){
                             this.gbProject = this.groupBy(gbWeek[w], "project")
-                            index=0
-                            for (const p of this.selectedProjects){
-                                if (this.gbProject[p]){
-                                    sum = 0
-                                    for (const n of this.gbProject[p] ){
-                                        sum = sum + parseFloat(n.work)
-                                    }
-                                    this.result[index].push(sum)
-                                }else{
-                                    this.result[index].push(0)
-                                }
-                                index++
-                            }
+                            this.sumP()
 
-                        this.chartOptions.xAxis.categories.push(`week:${w}/${parseInt(m)}`)
+                            this.chartOptions.xAxis.categories.push(`week:${w}/${parseInt(m)}`)
                         }
                     }
                     
@@ -801,19 +677,7 @@ export default {
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
                         this.gbProject = this.groupBy(gbMonth[m], "project")
-                        index=0
-                        for (const p of this.selectedProjects){
-                            if (this.gbProject[p]){
-                                sum = 0
-                                for (const n of this.gbProject[p] ){
-                                    sum = sum + parseFloat(n.work)
-                                }
-                                this.result[index].push(sum)
-                            }else{
-                                this.result[index].push(0)
-                            }
-                            index++
-                        }
+                        this.sumP()
 
                         this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
                         
@@ -821,20 +685,39 @@ export default {
                     break;
 
                 default:
-                    this.chartOptions.xAxis.categories = ["projects"]
+                    // pie chart
+                    this.pieChart = true
+                    this.createChartArr()
                     this.gbProject = this.groupBy(this.data, "project")
-                    for (const n of this.selectedProjects){
-                        sum = 0
-                        if(this.gbProject[n]){
-                            for (const m of this.gbProject[n]){
-                                sum = sum + parseFloat(m.work)
+                    index=0
+                    for (const p of this.selectedProjects){
+                        if (this.gbProject[p]){
+                            gbDepartment = this.groupBy(this.gbProject[p], "department")
+                            allSum = 0
+                            for (const dp in gbDepartment){
+                                sum = 0 
+                                for (const d of gbDepartment[dp]){
+                                    sum = sum + parseFloat(d.work)
+                                    allSum = allSum + parseFloat(d.work)
+                                }
+                                dpSum.push(sum)
                             }
-                        }else{
-                            sum = 0
+                            dataArr =[]
+                            for (const dp in gbDepartment){
+                                let percent
+                                let obj = new Object()
+                                obj.name = dp
+                                percent = ((dpSum[i]/allSum) * 100).toFixed(2)
+                                obj.y = parseFloat(percent)
+                                dataArr.push(obj)
+                                i++
+                            }
+                            this.pieCharts[index].chartOptions.title.text = p
+                            this.pieCharts[index].chartOptions.series.push({data: dataArr})
                         }
-                        this.result[index].push(sum)
                         index++
                     }
+                    
                     break;
             }
         },
@@ -898,7 +781,73 @@ export default {
             }else{
                 this.graphTypes = ["Daily", "Weekly", "Monthly"]
             }
+        },
+        sumP () {
+            let sum = 0
+            let index = 0
+            for (const p of this.selectedProjects){
+                if (this.gbProject[p]){
+                    sum = 0
+                    for (const n of this.gbProject[p] ){
+                        sum = sum + parseFloat(n.work)
+                    }
+                    this.result[index].push(sum)
+                }else{
+                    this.result[index].push(0)
+                }
+                index++
+            }
+        },
+        sumNP () {
+            let sum
+            let index = 0
+            for (const n of this.selectedNames){
+                if (this.gbName[n]){
+                    index=0
+                    this.gbProject = this.groupBy(this.gbName[n], "project")
+                    for (const s of this.selectedProjects ){
+                        if (this.gbProject[s]){
+                            sum = 0
+                            for (const p of this.gbProject[s]){
+                                sum = sum + parseFloat(p.work)
+                            }
+                            this.result[index].push(sum)
+                        }else{
+                            this.result[index].push(0)
+                        }
+                        index++
+                    }
+                }
+            }
+        },
+        findProjects () {
+            //find the number of projects
+            let arr = []
+            let cateArr = []
+            this.gbName = this.groupBy(this.data, "name")
+            for (const n of this.selectedNames){
+                arr = this.groupBy(this.gbName[n], "project")
+                cateArr = cateArr.concat(Object.keys(arr))
+            }
+            this.selectedProjects = cateArr.filter(this.onlyUnique)
+        },
+        createChartArr () {
+            for (const i of this.selectedProjects){
+                this.pieCharts.push({
+                    chartOptions: {
+                        series: [],
+                        chart: {
+                        type: 'pie'
+                        },
+                        title: {
+                            text: ''
+                        },
+                    }}
+                )
+            }
+
         }
+
     }
 
 }
@@ -931,6 +880,9 @@ export default {
 .date-picker {
     width: 100%;
     align-self: center;
+}
+.pieChart-card {
+    width: 50%
 }
 
 </style>

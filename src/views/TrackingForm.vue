@@ -11,7 +11,7 @@
                 @input="submitted=false">{{alertMsg}}</v-alert>
 
             <v-card-title class="text-h5 text-sm-h4 pl-3"
-            >Company Project</v-card-title>
+            >Tracking Project</v-card-title>
             <v-container>
             <v-form 
             ref="form"

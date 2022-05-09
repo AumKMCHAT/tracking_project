@@ -12,7 +12,7 @@
 
             <v-tab
             href="/">
-                Tracking Form
+                Tracking
             </v-tab>
 
             <v-tab
