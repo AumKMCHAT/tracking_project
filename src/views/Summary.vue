@@ -16,9 +16,11 @@
                         align-self="center"
                         class="pb-1"
                         >
-                            <v-select
+                            <v-autocomplete
                             outlined
                             dense
+                            chips
+                            deletable-chips
                             v-model="selectedNames"
                             :items="formattedNameOpt"
                             item-text="text"
@@ -29,28 +31,18 @@
                             @change="genProjectOpt"
                             hide-details
                             >
-                            <!-- <template v-slot:item="{ nameList, selectedNames, on, attrs }">
-                                 <v-list-item v-on="on" v-bind="attrs">
-                                <v-list-item-icon>
-                                    <v-icon>
-                                    {{ nameList.includes(selectedNames) ? 'checked' : 'uncheck' }}
-                                    </v-icon>
-                                </v-list-item-icon>
-                                <v-list-item-content>
-                                    <v-list-item-title v-text="selectedNames" class="text-left"></v-list-item-title>
-                                </v-list-item-content>
-                                </v-list-item>
-                            </template> -->
-                            </v-select>
+                            </v-autocomplete>
                         </v-col>
 
                         <v-col
                         cols="12"
                         md="7"
-                        class="pb-1">
+                        class="pb-0">
                             <v-autocomplete
                             outlined
                             dense
+                            chips
+                            deletable-chips
                             v-model="selectedProjects"
                             :items="projects"
                             multiple
@@ -58,29 +50,16 @@
                             prepend-inner-icon="summarize"
                             hide-details
                             >
-
-                            <!-- <template v-slot:item="{ projects, on, attrs }">
-                                 <v-list-item v-on="on" v-bind="attrs">
-                                <v-list-item-icon>
-                                    <v-icon>
-                                    {{ selectedProjects.includes(projects) ? 'checked' : 'uncheck' }}
-                                    </v-icon>
-                                </v-list-item-icon>
-                                <v-list-item-content>
-                                    <v-list-item-title v-text="projects" class="text-left"></v-list-item-title>
-                                </v-list-item-content>
-                                </v-list-item>
-                            </template>  -->
                             </v-autocomplete>
                         </v-col>
                     </v-row>
 
-                    <v-row
-                    class="">
+                    <v-row>
                         <v-col
                         align-self="start"
                         cols="12"
-                        md="12">
+                        md="12"
+                        class="pt-1">
                         <date-picker 
                         class="date-picker"
                         v-model="dates" 
@@ -99,7 +78,8 @@
                         <v-col
                         align-self="start"
                         cols="12"
-                        md="12">
+                        md="12"
+                        class="pt-1">
                         <v-select
                         outlined
                         menu-props="offsetY"
@@ -136,24 +116,36 @@
 
             <v-card v-if="chartOptions.series.length > 0"
                 class="pa-2">
-                <ul
-                v-for="(project, index) in projectsSum"
-                v-bind:key="index">
-                <li v-html="project"></li>
-                </ul>
+                <div class="project-list d-flex flex-wrap flex-column">
+                    <ul v-for="(project, index) in projectsSum"
+                    v-bind:key="index"
+                    class="list">
+                    <li 
+                    v-html="project"></li>
+                    </ul>
+                </div>
+                <div class="chart-div">
                     <highcharts 
+                    :class="chartOptions.series[0].data.length > 30?'overflow-chart':'normal-chart'"
                     :options="chartOptions" 
                     >
                     </highcharts> 
+                </div>
+
             </v-card>
 
             <div
-            class="d-flex flex-wrap justify-space-between">
+            :class="isMobile?'':'d-flex flex-wrap justify-space-between'">
 
             <v-card
             v-for="(chart, index) in pieCharts" 
             v-bind:key="index"
-            class="pieChart-card">
+            :class="isMobile?'pieChart-card-mobile':'pieChart-card'">
+                <ul
+                v-for="(department, i) in pieProjectSum[index]"
+                v-bind:key="i">
+                <li v-html="department"></li>
+                </ul>
                     <highcharts
                     :options="chart.chartOptions"></highcharts>
             </v-card>
@@ -209,8 +201,7 @@ export default {
         chartOptions: {
             series: [],
             chart: {
-              type: 'column',
-              height: '50%'
+              type: 'column'
             },
             title: {
                 text: ''
@@ -218,33 +209,42 @@ export default {
             plotOptions: {
               column: {
                 stacking: 'normal',
+                pointPadding: 0,
+                groupPadding: 0.2, 
+                pointWidth: 25,
                 dataLabels: {
                     enabled: true,
-                    position: 'center',
+                    position: 'ceter',
                     pointPadding: 0.2,
-                    borderWidth: 0,
+                    borderWidth: 0.1,
+                    pointWidth: 20,
                     formatter: function () {
-                        return (this.y!=0)?this.y + " ( " + this.y*8 +  " hrs )":""
+                        return (this.y!=0)?`${this.y} ( ${this.y*8} ${this.y*8>1?" hrs )":" hr )"}`:""
                     },
                 },
-                pointWidth: 20,
                 series : {
                     
                 }
               }
             },
             xAxis: {
-                categories: []
-
+                categories: [],
+                scrollbar: {
+                    enabled: true //enables scrolling 
+                },
             },
             yAxis: {
                 title: {
                     text: 'Unit'
                 },
             },
-            scrollbar: {
-                enabled: true
-            },
+            responsive: {  
+                rules: [{  
+                    condition: {  
+                        minWidth: 1200  
+                    },  
+                }]  
+            }
         },
         pieCharts: [],
         result: [],
@@ -252,7 +252,8 @@ export default {
         graphType: '',
         graphTypes: ["Daily", "Weekly", "Monthly"],
         pieChart: false,
-        projectsSum: []
+        projectsSum: [],
+        pieProjectSum: []
         
     }),
     methods: {
@@ -357,6 +358,7 @@ export default {
             }
         },        
         validate () {
+            this.pieProjectSum = []
             this.pieChart = false
             this.pieCharts = []
             this.projectsSum = []
@@ -420,7 +422,7 @@ export default {
             if (!this.pieChart){
                 for (const p of this.chartOptions.series){
                     sum = p.data.reduce((a, b) => a + b, 0)
-                    msg = `${p.name}: <span class="blue--text">${sum}</span> (<span class="green--text">${sum*8}</span> hrs)`
+                    msg = `${p.name}: <span class="blue--text">${sum}</span> ${sum>1? "days ":"day "}(<span class="green--text">${sum*8}</span> ${sum*8>1?"hrs":"hr"})`
                     this.projectsSum.push(msg)
                 }  
             }
@@ -526,7 +528,6 @@ export default {
                             this.sumNP()
 
                             this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
-                        
                     }
                     break;
 
@@ -552,7 +553,6 @@ export default {
                         }
                         index++
                     }
-
                     break;
             }
         },
@@ -575,7 +575,7 @@ export default {
                             this.gbName= this.groupBy(gbDate[d], "name")
                             this.sumNP()
 
-                        this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
+                            this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
                         }
                     }
                     break;
@@ -594,7 +594,6 @@ export default {
                             this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
                         }
                     }
-                    
                     break;
 
                 case 'Monthly':
@@ -603,11 +602,10 @@ export default {
                     //sum of work in each month
                     gbMonth = this.groupBy(this.data, "month")
                     for (const m in gbMonth){
-                            this.gbName= this.groupBy(gbMonth[m], "name")
-                            this.sumNP()
-                        
-                            this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
-                        
+                        this.gbName= this.groupBy(gbMonth[m], "name")
+                        this.sumNP()
+                    
+                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
                     }
                     break;
 
@@ -640,12 +638,13 @@ export default {
         },
         createDataP () {
             let sum
-            let index = 0
             let gbMonth,gbDate,gbWeek,gbDepartment
             let allSum = 0
             let i = 0
             let dpSum = []
             let dataArr = []
+            let msg
+            let msgArr = []
             switch (this.graphType) {
                 case 'Daily':
                     gbMonth = this.groupBy(this.data, "month")
@@ -658,7 +657,6 @@ export default {
                             this.chartOptions.xAxis.categories.push(`${d}/${parseInt(m)}`)
                         }
                     }
-                    
                     break;
 
                 case 'Weekly':
@@ -672,7 +670,6 @@ export default {
                             this.chartOptions.xAxis.categories.push(`week:${w}/${parseInt(m)}`)
                         }
                     }
-                    
                     break;
 
                 case 'Monthly':
@@ -681,17 +678,14 @@ export default {
                         this.gbProject = this.groupBy(gbMonth[m], "project")
                         this.sumP()
 
-                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
-                        
+                        this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`) 
                     }
                     break;
 
                 default:
                     // pie chart
                     this.pieChart = true
-                    this.createChartArr()
                     this.gbProject = this.groupBy(this.data, "project")
-                    index=0
                     for (const p of this.selectedProjects){
                         if (this.gbProject[p]){
                             gbDepartment = this.groupBy(this.gbProject[p], "department")
@@ -705,6 +699,7 @@ export default {
                                 dpSum.push(sum)
                             }
                             dataArr =[]
+                            msgArr = []
                             for (const dp in gbDepartment){
                                 let percent
                                 let obj = new Object()
@@ -712,14 +707,33 @@ export default {
                                 percent = ((dpSum[i]/allSum) * 100).toFixed(2)
                                 obj.y = parseFloat(percent)
                                 dataArr.push(obj)
+                                msg = `${dp}: <span class="blue--text">${dpSum[i]}</span> ${dpSum[i]>1? "days":"day"} (<span class="green--text">${dpSum[i]*8}</span> ${dpSum[i]*8>1? "hrs":"hr"})`
+                                msgArr.push(msg)
                                 i++
                             }
-                            this.pieCharts[index].chartOptions.title.text = p
-                            this.pieCharts[index].chartOptions.series.push({data: dataArr})
+                            this.pieCharts.push({
+                                chartOptions: {
+                                    series: [{data: dataArr}],
+                                    chart: {
+                                        type: 'pie'
+                                    },
+                                    title: {
+                                        text: p
+                                    },
+                                    plotOptions: {
+                                        pie: {
+                                            dataLabels: {
+                                                formatter: function () {
+                                                    return `${this.point.name} ( ${this.percentage.toFixed(2)} % )`
+                                                },
+                                            }
+                                        }
+                                    },
+                                }}
+                            )
+                            this.pieProjectSum.push(msgArr)
                         }
-                        index++
                     }
-                    
                     break;
             }
         },
@@ -768,17 +782,10 @@ export default {
             let firstArr = arr[0].split("-")
             let secondArr = arr[1].split("-")
             let days = moment([secondArr[0], secondArr[1], secondArr[2]]).diff(moment([firstArr[0], firstArr[1], firstArr[2]]), 'days')+1
-            if (days > 45){
-                if (days > 100){
-                    this.graphTypes = ["Monthly"]
-                    if (this.graphType != "Monthly"){
-                        this.graphType = ''
-                    }
-                }else{
-                    this.graphTypes = ["Weekly", "Monthly"]
-                    if (this.graphType == "Daily"){
-                        this.graphType = ''
-                    }
+            if (days > 150){
+                this.graphTypes = ["Weekly", "Monthly"]
+                if (this.graphType == "Daily"){
+                    this.graphType = ''
                 }
             }else{
                 this.graphTypes = ["Daily", "Weekly", "Monthly"]
@@ -832,22 +839,6 @@ export default {
                 cateArr = cateArr.concat(Object.keys(arr))
             }
             this.selectedProjects = cateArr.filter(this.onlyUnique)
-        },
-        createChartArr () {
-            for (const i of this.selectedProjects){
-                this.pieCharts.push({
-                    chartOptions: {
-                        series: [],
-                        chart: {
-                        type: 'pie'
-                        },
-                        title: {
-                            text: ''
-                        },
-                    }}
-                )
-            }
-
         }
 
     }
@@ -884,7 +875,36 @@ export default {
     align-self: center;
 }
 .pieChart-card {
-    width: 50%
+    width: 50%;
+    box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
+}
+.pieChart-card-mobile {
+    width: 100%;
+    box-shadow: 0px 0px 0px 0px rgba(0,0,0,0) !important;
+}
+.project-list {
+    max-height: 250px;
+    overflow-x: auto;
+    margin-bottom: 10px;
+}
+.list {
+    min-width: 265px;
+}
+.overflow-chart {
+    height: 600px;
+    width: 180%;
+}
+.normal-chart {
+    height: 600px;
+    width: 100%;
+}
+.chart-div {
+    height: 600px;
+    overflow-x: scroll;
+}
+.view-btn:hover {
+    background: #5DADE2;
+    color: #ffff !important;
 }
 
 </style>

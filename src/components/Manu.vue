@@ -16,6 +16,11 @@
             </v-tab>
 
             <v-tab
+            href="/leave">
+                Leave
+            </v-tab>
+
+            <v-tab
             href="/submission">
                 Submission
             </v-tab>
@@ -23,6 +28,11 @@
             <v-tab
             href="/summary">
                 Summary
+            </v-tab>
+
+            <v-tab
+            href="/viewleave">
+                Approval
             </v-tab>
 
         </v-tabs>

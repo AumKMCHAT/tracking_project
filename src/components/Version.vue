@@ -5,6 +5,7 @@
 
     <v-tooltip  
     top
+    open-delay="200"
     min-width="280"
     color="#11b8b8">
       <template v-slot:activator="{ on, attrs }">
@@ -15,7 +16,7 @@
           v-bind="attrs"
           v-on="on"
         >
-          KISRA Tracking project | v1.1 (2022/5/9)
+          KISRA Tracking project | v1.2 (2022/05/20)
         </v-btn>
       </template>
 
@@ -25,7 +26,12 @@
         max-width="280">
         <h3>Version</h3>
         <div>
-        v1.1 (2022/5/9) <br>
+        v1.2 (2022/05/20) <br>
+        - เพิ่มการค้นหาในช่อง employees <br>
+        - ปรับข้อมูลการแสดงผลหน้าsummary <br>
+        - เพิ่มแบบฟอร์มการลา และหน้าอนุมัติการลา <br>
+        - เปลี่ยนช่วงเวลาที่เลือกได้ของกราฟ <br>
+        v1.1 (2022/05/09) <br>
         - เพิ่มการคำนวณสัปดาห์สำหรับฟอร์ม <br>
         - เปลี่ยนชื่อใน manu tab และ ชื่อหัวข้อฟอร์ม <br>
         - เปลี่ยน font ใน cornfirm alert <br>
@@ -33,7 +39,6 @@
         - เปลี่ยนรูปแบบกราฟจากแนวนอนเป็นแนวตั้ง <br>
         - เพิ่มกราฟวงกลมในหน้า summary <br>
         - เพิ่มส่วนผลรวมรายโปรเจคจากกราฟ<br>
-
         </div>
       </v-responsive>
     </v-tooltip>

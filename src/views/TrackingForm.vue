@@ -35,13 +35,6 @@
                     align-self="center"
                     >
                         Department: {{department}}
-                        <!-- <Select
-                        :value="department"
-                        :items="allDepartments"
-                        rule="Department is required!"
-                        label="Department"
-                        :readonly="true"
-                        ></Select> -->
                     </v-col>
                 </v-row>
 
@@ -175,7 +168,7 @@
 <script>
 import moment from 'moment'
 import axios from 'axios'
-import { sheetUrl } from '../store/constants'
+import { sheetUrl, } from '../store/constants'
 import Select from '../components/Select.vue'
 import AutoComplete from '../components/AutoComplete.vue'
 import {mapState} from 'vuex'
@@ -314,7 +307,6 @@ export default {
                     this.selectedDate = ' '
                 }
             })
-
         },
         validate () {
             this.submitted = false
