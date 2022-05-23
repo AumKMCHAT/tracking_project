@@ -1,5 +1,6 @@
 <template>
     <v-select
+    :menu-props="menu"
     :color="color"
     :value="value"
     :items="items"
@@ -36,6 +37,9 @@ export default {
         },
         readonly: {
             default: false
+        },
+        menu: {
+            default: 'offsetY'
         }
     },
     methods: {

@@ -25,6 +25,7 @@
                         :items="formattedNameOpt"
                         item-text="text"
                         item-value="value"
+                        menu-props="offsetY"
                         rule="Name is required"
                         label="Name"
                         @change="findDepartment"
@@ -46,6 +47,8 @@
                         v-model="leaveType"
                         :items="types"
                         label="Leave type"
+                        menu-props="offsetY"
+                        @change="showDescription"
                         required
                         hide-details></v-select>
                     </v-col>
@@ -54,13 +57,22 @@
                         <v-select
                         v-model="numDays"
                         :items="days"
+                        menu-props="offsetY"
                         label="The number of days"
                         required
                         hide-details>></v-select>
                     </v-col>
                 </v-row>
 
-                <v-row>
+                <v-row
+                v-if="description != ' '"
+                >
+                    <v-col
+                    class="pt-0 pb-0"><span style="white-space: pre-line" class="description-span">{{description}}</span></v-col>
+                </v-row>
+
+                <v-row
+                class="mt-0">
                     <v-col
                     cols="12"
                     class="mt-4">
@@ -184,11 +196,12 @@ import Swal from 'sweetalert2'
             types: ["Personal Leave", "Vacation Leave", "Sick Leave (Have a Medical Certificate)", "Sick Leave (Not have a Medical Certificate)", "Ordination Leave", "Maternity Leave"],
             msg: "",
             disBtn: false,
-            data: {}
+            data: {},
+            description: ' '
         }),
         methods: {
             getName () {
-                let dev = [], ba = [], graphic = [], qa = []
+                let dev = [], ba = [], graphic = [], qa = [], admin = []
                 // tabs/sheetName
                 axios.get(leaveSheetUrl + '/tabs/nameSheet')
                     .then(res => {
@@ -207,6 +220,9 @@ import Swal from 'sweetalert2'
                                 case "QA":
                                     qa.push(n.name)
                                     break;
+                                case "ADMIN":
+                                    admin.push(n.name)
+                                    break;
                                 default:
                                     break;
                             }
@@ -215,7 +231,8 @@ import Swal from 'sweetalert2'
                         ba.sort()
                         graphic.sort()
                         qa.sort()
-                        this.nameList = ba.concat(dev,graphic,qa)
+                        admin.sort()
+                        this.nameList = admin.concat(ba, dev, graphic, qa)
 
                         if (this.employeeName){
                             this.name = this.employeeName
@@ -239,7 +256,7 @@ import Swal from 'sweetalert2'
             },
             async submit () {
                 this.data = {}
-                this.timeStamp = moment().format("M/D/YYYY HH:mm:ss")
+                this.timeStamp = moment().format("D/M/YYYY HH:mm:ss")
                 this.formattedDates = this.formatDate(this.dates)
                 this.data = {
                     timestamp: this.timeStamp,
@@ -254,6 +271,7 @@ import Swal from 'sweetalert2'
                 }
 
                 let res = await axios.post(leaveSheetUrl + '/tabs/leaveFormResponses', this.data )
+                console.log(res.data);
                 if (res.status == 200){
                     this.isSubmitting = false
                     this.alertType = "success"
@@ -339,6 +357,38 @@ import Swal from 'sweetalert2'
                 end = end.split("/")
                 nDays = moment([end[2], end[1], end[0]]).diff(moment([start[2], start[1], start[0]]), 'days') +1
                 return nDays
+            },
+            showDescription () {
+                switch (this.leaveType) {
+                    case "Personal Leave":
+                        this.description = "- สามารถลาได้ปีละ 4 วัน\n- ต้องใช้ในงานราชการ หรือกิจธุระในวันทำการเท่านั้น\n- ต้องแจ้งล่วงหน้าอย่างน้อย 3 วัน"
+                        break;
+                    
+                    case "Vacation Leave":
+                        this.description = "- ต้องการลาพักร้อน 1 วัน แจ้งล่วงหน้า 1 สัปดาห์\n- ต้องการลาพักร้อน 2-3 วัน แจ้งล่วงหน้า 1 เดือน\n- ต้องการลาพักร้อน 3 วันขึ้นไป แจ้งล่วงหน้า3เดือน\n- ห้ามใช้วันลาพักร้อนติดต่อกันเกิน 5 วันภายในเดือน"
+                        break;
+
+                    case "Sick Leave (Have a Medical Certificate)":
+                        this.description = "- สามารถลาได้ปีละ 27 วัน"
+                        break;
+
+                    case "Sick Leave (Not have a Medical Certificate)":
+                        this.description = "- สามารถลาได้ปีละ 3 วัน"
+                        break;
+
+                    case "Ordination Leave":
+                        this.description = "- ต้องมีอายุงานเกิน 1 ปี\n- สามารถลาได้ 15 วัน หรือตามกำหนดการจริง"
+                        break;
+
+                    case "Maternity Leave":
+                        this.description = "- สามารถลางานได้ 98 วัน โดยรวมถึงวันลาเพื่อตรวจครรภ์ก่อนคลอดบุตร และนับรวมวันหยุดระหว่างวันลาด้วย จะได้รับเงินเดือนปกติไม่เกิน 30 วัน\n- หากต้องการลามากกว่า 98 วัน ขึ้นอยู่กับดุลยพินิจของางบริษัท"
+                        break;
+                
+                    default:
+                        this.description = ' '
+                        break;
+                }
+
             }
         }
              
@@ -374,6 +424,10 @@ import Swal from 'sweetalert2'
     border: 0px solid #fff !important ;
     border-bottom: 1px solid #999 !important;
     -webkit-box-shadow: 0px 0px 0px ;
+}
+.description-span {
+    color: #999;
+    font-size: 13px;
 }
 </style>
 

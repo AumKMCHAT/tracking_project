@@ -295,7 +295,7 @@ export default {
                     }
                 }
                 if (Number.isInteger(n) && Number.isInteger(m)){
-                    if(data.remark == "Late"){
+                    if(data.Remark == "Late"){
                         this.dataShow[n][m] = 2
                     }else{
                         this.dataShow[n][m] = 1

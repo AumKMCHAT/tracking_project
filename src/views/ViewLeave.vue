@@ -274,7 +274,7 @@ export default {
             })
         },
         async submit () {
-            let res,trackingRes, newDate
+            let res,trackingRes, newDate, newMonth
             let trackingData = []
             let newVal , dateArr, newWeek
             let newStatus = {status: this.dataStatus}
@@ -288,39 +288,43 @@ export default {
             }
             if (this.dataStatus == "approved"){
                 for (const row of this.selected){
-                    if (row['number of days']>= 1){
-                        if (row['number of days']== 1){
-                            dateArr = row['date(from)'].split('/')
-                            newWeek = this.calWeek(row['date(to)'])
-                            newVal = {
-                                date: dateArr[0],
-                                week: newWeek,
-                                month: dateArr[1],
-                                project: 'KS-TakeLeave',
-                                work: '1',
-                                name: row.name,
-                                department: row.department,
-                                remark: '',
-                            }
-                            trackingData.push(newVal)
-                        }else{
-                            for (let i = 0; i < row['number of days']; i++ ){
-                                newDate = moment(`${row['date(from)']}`, 'D/M/YYYY').add(i, 'days').format('D/M/YYYY')
-                                dateArr = newDate.split('/')
-                                newWeek = this.calWeek(newDate)
+                    if (row.department != "ADMIN"){
+                        if (row['number of days']>= 1){
+                            if (row['number of days']== 1){
+                                dateArr = row['date(from)'].split('/')
+                                newMonth = moment(`${dateArr[1]}`, 'M').format("MM MMM").toUpperCase()
+                                newWeek = this.calWeek(row['date(to)'])
                                 newVal = {
-                                    date: dateArr[0],
-                                    week: newWeek,
-                                    month: dateArr[1],
-                                    project: 'KS-TakeLeave',
-                                    work: '1',
-                                    name: row.name,
-                                    department: row.department,
-                                    remark: '',
+                                    Date: dateArr[0],
+                                    Week: newWeek,
+                                    Month: `'${newMonth}`,
+                                    Project: 'KS-TakeLeave',
+                                    Work: '1',
+                                    NAME: row.name,
+                                    Department: row.department,
+                                    Remark: '',
                                 }
                                 trackingData.push(newVal)
+                            }else{
+                                for (let i = 0; i < row['number of days']; i++ ){
+                                    newDate = moment(`${row['date(from)']}`, 'D/M/YYYY').add(i, 'days').format('D/M/YYYY')
+                                    dateArr = newDate.split('/')
+                                    newMonth = moment(`${dateArr[1]}`, 'M').format("MM MMM").toUpperCase()
+                                    newWeek = this.calWeek(newDate)
+                                    newVal = {
+                                        Date: dateArr[0],
+                                        Week: newWeek,
+                                        Month: `'${newMonth}`,
+                                        Project: 'KS-TakeLeave',
+                                        Work: '1',
+                                        NAME: row.name,
+                                        Department: row.department,
+                                        Remark: '',
+                                    }
+                                    trackingData.push(newVal)
+                                }
                             }
-                        }
+                        }                        
                     }
                 }
                 trackingRes = await axios.post(sheetUrl + '/tabs/Per man', trackingData)
