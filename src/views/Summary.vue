@@ -329,10 +329,12 @@ export default {
         async getData () {
             this.data = []
             this.isLoading = true
-            let res
+            let res, first;
+            let dataArr = []
+            first = moment(`${this.firstMonth}`, 'M').format('MM MMM').toUpperCase().toString()
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
                 // get a day
-                res = await axios.get(sheetUrl + `/tabs/Per man/search?date=${this.firstDay}&month=${this.firstMonth}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?Date=${this.firstDay}&Month=${first}`)
                 this.data = res.data
                 this.createResult()
                 this.filterData()
@@ -340,16 +342,20 @@ export default {
             }else{
                 if (this.firstMonth == this.lastMonth){
                     // get a month
-                    res = await axios.get(sheetUrl + `/tabs/Per man/query?month=${this.firstMonth}&date=__gte(${this.firstDay})&date=__lte(${this.lastDay})`)
+                    res = await axios.get(sheetUrl + `/tabs/Per man/query?&Month=${first}&Date=__gte(${this.firstDay})&Date=__lte(${this.lastDay})`)
                     this.data = res.data
                     this.createResult()
                     this.filterData()
                     this.isLoading = false
                 }else{
                     //get in range
-                    res = await axios.get(sheetUrl + `/tabs/Per man/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
+                    for (let i = this.firstMonth; i<= this.lastMonth; i++){
+                        first = moment(`${i}`, 'M').format('MM MMM').toUpperCase().toString()
+                        res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${first}`)
+                        dataArr = dataArr.concat(res.data)
+                    }
                     //filterdate 
-                    this.data = res.data
+                    this.data = dataArr
                     this.createResult()
                     this.filterDate()
                     this.filterData()
@@ -370,25 +376,11 @@ export default {
             let datesArr = this.changeFormat(this.dates)
             let firstArr, secondArr
             firstArr = datesArr[0].split("-")
-            if (this.dates.length > 1){
-                secondArr = datesArr[1].split("-")
-                if (moment(`${this.dates[0]}`).isBefore(`${this.dates[1]}`, 'day')){
-                    this.firstDay = parseInt(firstArr[2])
-                    this.firstMonth = parseInt(firstArr[1])
-                    this.lastDay = parseInt(secondArr[2])
-                    this.lastMonth = parseInt(secondArr[1])
-                }else{
-                    this.firstDay = parseInt(secondArr[2])
-                    this.firstMonth = parseInt(secondArr[1])
-                    this.lastDay = parseInt(firstArr[2])
-                    this.lastMonth = parseInt(firstArr[1])
-                }
-            }else{
-                this.firstDay = parseInt(firstArr[2])
-                this.firstMonth = parseInt(firstArr[1])
-                this.lastDay = parseInt(firstArr[2])
-                this.lastMonth = parseInt(firstArr[1])
-            }
+            secondArr = datesArr[1].split("-")
+            this.firstDay = parseInt(firstArr[2])
+            this.firstMonth = parseInt(firstArr[1])
+            this.lastDay = parseInt(secondArr[2])
+            this.lastMonth = parseInt(secondArr[1])
             this.getData()
         },
         filterData () {
@@ -429,17 +421,20 @@ export default {
         },
         filterDate () {
             let a = [];
+            let m, month
             for (const item of this.data){
-                if (item.month > this.firstMonth && item.month < this.lastMonth){
+                m = item.Month.split(' ')
+                month = parseInt(m[0])
+                if (month > this.firstMonth && month < this.lastMonth){
                     a.push(item)
                 }else{
-                    if (item.month == this.firstMonth){
-                        if (item.date >= this.firstDay){
+                    if (month == this.firstMonth){
+                        if (item.Date >= this.firstDay){
                             a.push(item)
                         }
                     }else{
-                        if (item.month == this.lastMonth){
-                            if (item.date <= this.lastDay){
+                        if (month == this.lastMonth){
+                            if (item.Date <= this.lastDay){
                                 a.push(item)
                             }
                         }
@@ -494,11 +489,11 @@ export default {
             let gbMonth,gbDate,gbWeek
             switch (this.graphType) {
                 case 'Daily':
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        gbDate = this.groupBy(gbMonth[m], "date")
+                        gbDate = this.groupBy(gbMonth[m], "Date")
                         for (const d in gbDate){
-                            this.gbName= this.groupBy(gbDate[d], "name")
+                            this.gbName= this.groupBy(gbDate[d], "NAME")
                             this.sumNP()
 
                             this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
@@ -508,11 +503,11 @@ export default {
 
                 case 'Weekly':
                     //sum of work in each week
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        gbWeek = this.groupBy(gbMonth[m], "week")
+                        gbWeek = this.groupBy(gbMonth[m], "Week")
                         for (const w in gbWeek){
-                            this.gbName= this.groupBy(gbWeek[w], "name")
+                            this.gbName= this.groupBy(gbWeek[w], "NAME")
                             this.sumNP()
 
                             this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
@@ -522,9 +517,9 @@ export default {
 
                 case 'Monthly':
                     //sum of work in each month
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                            this.gbName= this.groupBy(gbMonth[m], "name")
+                            this.gbName= this.groupBy(gbMonth[m], "NAME")
                             this.sumNP()
 
                             this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
@@ -533,17 +528,17 @@ export default {
 
                 default:
                     this.chartOptions.xAxis.categories = this.selectedNames
-                    this.gbName = this.groupBy(this.data, "name")
+                    this.gbName = this.groupBy(this.data, "NAME")
                     for (const p of this.selectedProjects){
                         for (const n of this.selectedNames){
                             sum = 0
                             if (this.gbName[n]){
-                                arr = this.groupBy(this.gbName[n], "project")
+                                arr = this.groupBy(this.gbName[n], "Project")
                                 if (!arr[p]){
                                     sum = 0
                                 }else{
                                     for (const num of arr[p]){
-                                        sum = sum + parseFloat(num.work)
+                                        sum = sum + parseFloat(num.Work)
                                     }
                                 }
                             }else{
@@ -568,11 +563,11 @@ export default {
                     this.findProjects()
                     this.createResult()
                     //sum of work in each day
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        gbDate = this.groupBy(gbMonth[m], "date")
+                        gbDate = this.groupBy(gbMonth[m], "Date")
                         for (const d in gbDate){
-                            this.gbName= this.groupBy(gbDate[d], "name")
+                            this.gbName= this.groupBy(gbDate[d], "NAME")
                             this.sumNP()
 
                             this.chartOptions.xAxis.categories.push(`${parseInt(d)}/${parseInt(m)}`)
@@ -584,11 +579,11 @@ export default {
                     this.findProjects()
                     this.createResult()
                     //sum of work in each week
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        gbWeek = this.groupBy(gbMonth[m], "week")
+                        gbWeek = this.groupBy(gbMonth[m], "Week")
                         for (const w in gbWeek){
-                            this.gbName= this.groupBy(gbWeek[w], "name")
+                            this.gbName= this.groupBy(gbWeek[w], "NAME")
                             this.sumNP()
 
                             this.chartOptions.xAxis.categories.push(`week:${parseInt(w)}/${parseInt(m)}`)
@@ -600,9 +595,9 @@ export default {
                     this.findProjects()
                     this.createResult()
                     //sum of work in each month
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        this.gbName= this.groupBy(gbMonth[m], "name")
+                        this.gbName= this.groupBy(gbMonth[m], "NAME")
                         this.sumNP()
                     
                         this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`)
@@ -617,12 +612,12 @@ export default {
                         for (const n of this.selectedNames){
                             sum = 0
                             if (this.gbName[n]){
-                                arr = this.groupBy(this.gbName[n], "project")
+                                arr = this.groupBy(this.gbName[n], "Project")
                                 if (!arr[p]){
                                     sum = 0
                                 }else{
                                     for (const num of arr[p]){
-                                        sum = sum + parseFloat(num.work)
+                                        sum = sum + parseFloat(num.Work)
                                     }
                                 }
                             }else{
@@ -647,11 +642,11 @@ export default {
             let msgArr = []
             switch (this.graphType) {
                 case 'Daily':
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        gbDate = this.groupBy(gbMonth[m], "date")
+                        gbDate = this.groupBy(gbMonth[m], "Date")
                         for (const d in gbDate){
-                            this.gbProject = this.groupBy(gbDate[d], "project")
+                            this.gbProject = this.groupBy(gbDate[d], "Project")
                             this.sumP()
 
                             this.chartOptions.xAxis.categories.push(`${d}/${parseInt(m)}`)
@@ -660,11 +655,11 @@ export default {
                     break;
 
                 case 'Weekly':
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        gbWeek = this.groupBy(gbMonth[m], "week")
+                        gbWeek = this.groupBy(gbMonth[m], "Week")
                         for (const w in gbWeek){
-                            this.gbProject = this.groupBy(gbWeek[w], "project")
+                            this.gbProject = this.groupBy(gbWeek[w], "Project")
                             this.sumP()
 
                             this.chartOptions.xAxis.categories.push(`week:${w}/${parseInt(m)}`)
@@ -673,9 +668,9 @@ export default {
                     break;
 
                 case 'Monthly':
-                    gbMonth = this.groupBy(this.data, "month")
+                    gbMonth = this.groupBy(this.data, "Month")
                     for (const m in gbMonth){
-                        this.gbProject = this.groupBy(gbMonth[m], "project")
+                        this.gbProject = this.groupBy(gbMonth[m], "Project")
                         this.sumP()
 
                         this.chartOptions.xAxis.categories.push(`month:${parseInt(m)}`) 
@@ -685,16 +680,16 @@ export default {
                 default:
                     // pie chart
                     this.pieChart = true
-                    this.gbProject = this.groupBy(this.data, "project")
+                    this.gbProject = this.groupBy(this.data, "Project")
                     for (const p of this.selectedProjects){
                         if (this.gbProject[p]){
-                            gbDepartment = this.groupBy(this.gbProject[p], "department")
+                            gbDepartment = this.groupBy(this.gbProject[p], "Department")
                             allSum = 0
                             for (const dp in gbDepartment){
                                 sum = 0 
                                 for (const d of gbDepartment[dp]){
-                                    sum = sum + parseFloat(d.work)
-                                    allSum = allSum + parseFloat(d.work)
+                                    sum = sum + parseFloat(d.Work)
+                                    allSum = allSum + parseFloat(d.Work)
                                 }
                                 dpSum.push(sum)
                             }
@@ -740,12 +735,12 @@ export default {
         createData () {
             let sum 
             let index = 0
-            this.gbProject = this.groupBy(this.data, "project")
+            this.gbProject = this.groupBy(this.data, "Project")
             this.selectedProjects = Object.keys(this.gbProject)
             this.createResult()
             for (const n of this.selectedProjects){
                 for (const m of this.gbProject[n]){
-                    sum = sum + parseFloat(m.work)
+                    sum = sum + parseFloat(m.Work)
                 }
 
                 this.result[index].push(sum)
@@ -798,7 +793,7 @@ export default {
                 if (this.gbProject[p]){
                     sum = 0
                     for (const n of this.gbProject[p] ){
-                        sum = sum + parseFloat(n.work)
+                        sum = sum + parseFloat(n.Work)
                     }
                     this.result[index].push(sum)
                 }else{
@@ -813,12 +808,12 @@ export default {
             for (const n of this.selectedNames){
                 if (this.gbName[n]){
                     index=0
-                    this.gbProject = this.groupBy(this.gbName[n], "project")
+                    this.gbProject = this.groupBy(this.gbName[n], "Project")
                     for (const s of this.selectedProjects ){
                         if (this.gbProject[s]){
                             sum = 0
                             for (const p of this.gbProject[s]){
-                                sum = sum + parseFloat(p.work)
+                                sum = sum + parseFloat(p.Work)
                             }
                             this.result[index].push(sum)
                         }else{
@@ -833,9 +828,9 @@ export default {
             //find the number of projects
             let arr = []
             let cateArr = []
-            this.gbName = this.groupBy(this.data, "name")
+            this.gbName = this.groupBy(this.data, "NAME")
             for (const n of this.selectedNames){
-                arr = this.groupBy(this.gbName[n], "project")
+                arr = this.groupBy(this.gbName[n], "Project")
                 cateArr = cateArr.concat(Object.keys(arr))
             }
             this.selectedProjects = cateArr.filter(this.onlyUnique)

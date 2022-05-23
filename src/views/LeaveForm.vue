@@ -181,7 +181,7 @@ import Swal from 'sweetalert2'
             isSubmitting: false,
             submitted: false,
             leaveType: '',
-            types: ["Personal Leave", "Vacation Leave", "Maternity Leave", "Sick Leave (Have a Medical Certificate)", "Sick Leave (Not have a Medical Certificate)", "Ordination Leave"],
+            types: ["Personal Leave", "Vacation Leave", "Sick Leave (Have a Medical Certificate)", "Sick Leave (Not have a Medical Certificate)", "Ordination Leave", "Maternity Leave"],
             msg: "",
             disBtn: false,
             data: {}
@@ -376,3 +376,24 @@ import Swal from 'sweetalert2'
     -webkit-box-shadow: 0px 0px 0px ;
 }
 </style>
+
+ลากิจ (Personal Leave)
+- สามารถลาได้ปีละ 4 วัน
+- ต้องใช้ในงานราชการ หรือกิจธุระในวันทำการเท่านั้น
+- ต้องแจ้งล่วงหน้าอย่างน้อย 3 วัน
+ลาพักร้อน (Vacation Leave)
+- ต้องการลาพักร้อน 1 วัน แจ้งล่วงหน้า 1 สัปดาห์
+- ต้องการลาพักร้อน 2-3 วัน แจ้งล่วงหน้า 1 เดือน
+- ต้องการลาพักร้อน 3 วันขึ้นไป แจ้งล่วงหน้า3เดือน
+- ห้ามใช้วันลาพักร้อนติดต่อกันเกิน 5 วันภายในเดือน
+ลาป่วยมีใบรับรองแพทย์ (Sick Leave (Have a Medical Certificate))
+- สามารถลาได้ปีละ 27 วัน
+ลาป่วยไม่มีใบรับรองแพทย์ (Sick Leave (Not have a Medical Certificate))
+- สามารถลาได้ปีละ 3 วัน
+ลาบวช (Ordination Leave)
+- ต้องมีอายุงานเกิน 1 ปี
+- สามารถลาได้ 15 วัน หรือตามกำหนดการจริง
+พนักงานชายที่ภรรยาคลอดบุตรมีสิทธิลางานได้ 7 วัน และสามารถเลือกลาได้โดยไม่จำเป็นต้องติดต่อกัน แต่ต้องไม่เกิน 2 สัปดาห์ นับจากวันที่ภรรยาคลอดบุตร
+ลาคลอด (Maternity Leave)
+- สามารถลางานได้ 98 วัน โดยรวมถึงวันลาเพื่อตรวจครรภ์ก่อนคลอดบุตร และนับรวมวันหยุดระหว่างวันลาด้วย จะได้รับเงินเดือนปกติไม่เกิน 30 วัน
+- หากต้องการลามากกว่า 98 วัน ขึ้นอยู่กับดุลยพินิจของางบริษัท

@@ -148,10 +148,12 @@ export default {
         async getData () {
             this.data = []
             this.isLoading = true
-            let res;
+            let res, first;
+            let dataArr = []
+            first = moment(`${this.firstMonth}`, 'M').format('MM MMM').toUpperCase().toString()
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
                 // get a day
-                res = await axios.get(sheetUrl + `/tabs/Per man/search?date=${this.firstDay}&month=${this.firstMonth}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?Date=${this.firstDay}&Month=${first}`)
                 this.data = res.data
                 this.findRange()
                 this.checkData()
@@ -159,16 +161,20 @@ export default {
             }else{
                 if (this.firstMonth == this.lastMonth){
                     // get a month
-                    res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${this.firstMonth}`)
+                    res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${first}`)
                     this.data = res.data
                     this.filterData()
                     this.findRange()
                     this.checkData()
                     this.isLoading = false
                 }else{
+                    for (let i = this.firstMonth; i<= this.lastMonth; i++){
+                        first = moment(`${i}`, 'M').format('MM MMM').toUpperCase().toString()
+                        res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${first}`)
+                        dataArr = dataArr.concat(res.data)
+                    }
                     //get in range
-                    res = await axios.get(sheetUrl + `/tabs/Per man/query?month=__gte(${this.firstMonth})&month=__lte(${this.lastMonth})`)
-                    this.data = res.data
+                    this.data = dataArr
                     this.filterData()
                     this.findRange()
                     this.checkData()
@@ -176,7 +182,6 @@ export default {
                 }
             }
         },
-        //bugs date format for check range
         findRange () {
             let firstFormat = `${this.firstMonth}/${this.firstDay}/${this.year}`
             let lastFormat = `${this.lastMonth}/${this.firstDay}/${this.year}`
@@ -244,17 +249,20 @@ export default {
         },
         filterData () {
             let a = [];
+            let m, month
             for (const item of this.data){
-                if (item.month > this.firstMonth && item.month < this.lastMonth){
+                m = item.Month.split(' ')
+                month = parseInt(m[0])
+                if (month > this.firstMonth && month < this.lastMonth){
                     a.push(item)
                 }else{
-                    if (item.month == this.firstMonth){
-                        if (item.date >= this.firstDay){
+                    if (month == this.firstMonth){
+                        if (item.Date >= this.firstDay){
                             a.push(item)
                         }
                     }else{
-                        if (item.month == this.lastMonth){
-                            if (item.date <= this.lastDay){
+                        if (month == this.lastMonth){
+                            if (item.Date <= this.lastDay){
                                 a.push(item)
                             }
                         }
@@ -265,21 +273,23 @@ export default {
         },
         checkData () {
             this.dataShow = []
-            let n,m;
+            let n,m, mm, month
             for (const name of this.nameList){
                 this.dataShow.push(Array.from({length: this.dateRange.length}, (_, i) => 0))
             }
             for (const data of this.data){
+                mm = data.Month.split(' ')
+                month = parseInt(mm[0])
                 n = false
                 m = false
                 for (let i = 0; i < this.nameList.length; i++){
-                    if (data.name == this.nameList[i]){
+                    if (data.NAME == this.nameList[i]){
                         n = i
                         break;
                     }
                 }
                 for (let i = 0; i < this.dateRange.length; i++){
-                    if (data.date == this.dateRange[i].date && data.month == this.dateRange[i].month){
+                    if (data.Date == this.dateRange[i].date && month == this.dateRange[i].month){
                         m = i
                         break;
                     }

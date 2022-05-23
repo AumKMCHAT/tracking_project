@@ -442,48 +442,32 @@ export default {
         },
         async submit () {
             this.checkLate(this.selectedDate)
-            let row, resPost, projectData, index;
+            let row, resPost, projectData, month, m;
             let newVal;
             let msg = "";
             if (this.late){
                 msg = "Late"
             }
+            month = moment(`${this.month}`, 'M').format('MM MMM')
+            month =  month.toUpperCase().slice(0)
             for (let i = 0;i < this.selectedProjects.length;i++){
                 if (this.selectedProjects[i].project != '' && this.selectedProjects[i].work != ''){
                     row = {
-                        date: this.date,
-                        week: this.week,
-                        month: this.month,
-                        project: this.selectedProjects[i].project,
-                        work: this.selectedProjects[i].work,
-                        name: this.name,
-                        department: this.department,
-                        remark: msg,
+                        Date: this.date,
+                        Week: this.week,
+                        Month: `'${month}`,
+                        Project: this.selectedProjects[i].project,
+                        Work: this.selectedProjects[i].work,
+                        NAME: this.name,
+                        Department: this.department,
+                        Remark: msg,
                     }
                     this.data.push(row)
-                    console.log(row);
                 }
             }
-            console.log(this.data);
             resPost = await axios.post(sheetUrl + '/tabs/Per man', this.data )
+            console.log(resPost.data);
                 if (resPost.status == 200){
-                    projectData = await axios.get(sheetUrl + `/tabs/sumProject`)
-                    for (const m of this.data){
-                        for (const n of projectData.data){
-                           if (n.project == m.project){
-                               newVal = {
-                                    [this.name]: parseFloat(n[this.name]) + parseFloat(m.work),
-                                    [this.department]: parseFloat(n[this.department]) + parseFloat(m.work),
-                                    All: parseFloat(n.DEV) + parseFloat(n.Graphic) + parseFloat(n.BA) + parseFloat(m.work)
-                               }
-                            axios.patch(sheetUrl + `/tabs/sumProject/search?project=${m.project}`, newVal)
-                                .then(res => {
-                                    console.log(res.status);
-                                })
-                            break;
-                           } 
-                        }
-                    }
                     this.data = []
                     this.isSubmitting = false
                     this.alertType = "success"
@@ -572,11 +556,11 @@ export default {
         },
         async genDateOpt () {
             this.dateOpt = []
-            let date, month, data1, data2, res;
+            let date, month, data1, data2, res, formatMonth, m;
             let found1 = false;
             let found2 = false;
             if (moment().subtract(6, 'days').format("M") == moment().format("M")){
-                res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${moment().subtract(6, 'days').format("MM MMM").toUpperCase()}&NAME=${this.name}`)
                     data1 = res.data
                 for (let i = 0; i < 7; i++){
                     found1 = false
@@ -584,7 +568,9 @@ export default {
                         date = moment().subtract(i, 'days').format("D")
                         month = moment().subtract(i, 'days').format("M")
                         for (const row of data1){
-                            if (row.date == date && row.month == month){
+                            formatMonth = row.Month.split(' ')
+                            m = parseInt(formatMonth[0])
+                            if (row.Date == date && m == month){
                                 found1 = true
                             }
                         }
@@ -594,9 +580,9 @@ export default {
                     }
                 }
             }else{
-                res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${moment().subtract(6, 'days').format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${moment().subtract(6, 'days').format("MM MMM").toUpperCase()}&NAME=${this.name}`)
                     data1 = res.data
-                res = await axios.get(sheetUrl + `/tabs/Per man/search?month=${moment().format("M")}&name=${this.name}`)
+                res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${moment().format("MM MMM").toUpperCase()}&NAME=${this.name}`)
                     data2 = res.data
                 for (let i = 0; i < 7; i++){
                     found1 = false
@@ -605,12 +591,16 @@ export default {
                         date = moment().subtract(i, 'days').format("D")
                         month = moment().subtract(i, 'days').format("M")
                         for (const row of data1){
-                            if (row.date == date && row.month == month){
+                            formatMonth = row.Month.split(' ')
+                            m = parseInt(formatMonth[0])
+                            if (row.Date == date && m == month){
                                 found1 = true
                             }
                         }
                         for (const row of data2){
-                            if (row.date == date && row.month == month){
+                            formatMonth = row.Month.split(' ')
+                            m = parseInt(formatMonth[0])
+                            if (row.Date == date && m == month){
                                 found2 = true
                             }
                         }

@@ -59,8 +59,27 @@
         v-if="secretPass == passwordC || secretPass == passwordKey"
         :class="isMobile?'mobile-div':''">
             <v-card class="waiting-card">
-                <v-card-text
-                class="text-center"><h2>Pending Approval</h2></v-card-text>
+                <v-row
+                class="pb-3 pt-3">
+                    <v-col
+                    class="text-left pl-7">
+                      <h2>Pending Approval</h2>  
+                    </v-col>
+                    
+                    <v-col
+                    cols="4"
+                    class="pr-5">
+                        <v-text-field
+                        v-model="search"
+                        append-icon="search"
+                        label="Search"
+                        single-line
+                        hide-details
+                        class="pt-0 mt-0"
+                        ></v-text-field>                        
+                    </v-col>
+
+                </v-row>
                 <v-data-table
                 v-model="selected"
                 :headers="waitingHeader"
@@ -94,9 +113,29 @@
             </v-card>
 
             <v-card class="approved-card">
-                <v-card-text
-                class="text-center"><h2>History</h2></v-card-text>
+                <v-row
+                class="pb-3 pt-3">
+                    <v-col
+                    class="text-left pl-7">
+                      <h2>History</h2>  
+                    </v-col>
+                    
+                    <v-col
+                    cols="4"
+                    class="pr-5">
+                        <v-text-field
+                        v-model="historySearch"
+                        append-icon="search"
+                        label="Search"
+                        single-line
+                        hide-details
+                        class="pt-0 mt-0"
+                        ></v-text-field>                        
+                    </v-col>
+
+                </v-row>
                 <v-data-table
+                :search="historySearch"
                 :headers="historyHeader"
                 :items="historyData"
                 :items-per-page="isMobile?2:5"
@@ -165,7 +204,9 @@ export default {
         secretPass: secretPass,
         passwordC: '',
         confirmClick: false,
-        show: false
+        show: false,
+        search: '',
+        historySearch: ''
     }),
     methods: {
         async getData () {
@@ -384,6 +425,9 @@ export default {
 }
 .mobile-div {
     overflow-x: scroll;
+}
+.data-table {
+    width: 100%;
 }
 
 </style>
