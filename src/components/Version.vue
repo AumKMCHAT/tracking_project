@@ -16,7 +16,7 @@
           v-bind="attrs"
           v-on="on"
         >
-          KISRA Tracking project | v1.2 (2022/05/20)
+          KISRA Tracking project | v1.3 (2022/05/25)
         </v-btn>
       </template>
 
@@ -26,6 +26,9 @@
         max-width="280">
         <h3>Version</h3>
         <div>
+        v1.3 (2022/05/25) <br>
+        - เพิ่มการเช็ค trcking สำหรับการลา <br>
+        - สรุปการ tracking หลังอนุมัติการลา <br>
         v1.2 (2022/05/20) <br>
         - เพิ่มการค้นหาในช่อง employees <br>
         - ปรับข้อมูลการแสดงผลหน้าsummary <br>

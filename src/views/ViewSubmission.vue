@@ -185,6 +185,7 @@ export default {
         findRange () {
             let firstFormat = `${this.firstMonth}/${this.firstDay}/${this.year}`
             let lastFormat = `${this.lastMonth}/${this.firstDay}/${this.year}`
+            //just a day
             if (this.firstDay == this.lastDay && this.firstMonth == this.lastMonth){
                 this.dateRange.push({
                     date: this.firstDay,
@@ -251,8 +252,10 @@ export default {
             let a = [];
             let m, month
             for (const item of this.data){
+                //change month from google sheet to the number
                 m = item.Month.split(' ')
                 month = parseInt(m[0])
+                //filter data
                 if (month > this.firstMonth && month < this.lastMonth){
                     a.push(item)
                 }else{
@@ -274,26 +277,31 @@ export default {
         checkData () {
             this.dataShow = []
             let n,m, mm, month
+            //create 0 2D array size nameList.length * dateRange.length
             for (const name of this.nameList){
                 this.dataShow.push(Array.from({length: this.dateRange.length}, (_, i) => 0))
             }
+            //find index and change value in array
             for (const data of this.data){
                 mm = data.Month.split(' ')
                 month = parseInt(mm[0])
                 n = false
                 m = false
+                //find name index
                 for (let i = 0; i < this.nameList.length; i++){
                     if (data.NAME == this.nameList[i]){
                         n = i
                         break;
                     }
                 }
+                //find date index
                 for (let i = 0; i < this.dateRange.length; i++){
                     if (data.Date == this.dateRange[i].date && month == this.dateRange[i].month){
                         m = i
                         break;
                     }
                 }
+                //if found both will change value in 2D array
                 if (Number.isInteger(n) && Number.isInteger(m)){
                     if(data.Remark == "Late"){
                         this.dataShow[n][m] = 2
@@ -304,6 +312,7 @@ export default {
             }
         },
         disabledDate(date) {
+            //disable all days in previous years and days after today
             const today = new Date();
             const firstDay = new Date(date.getFullYear(), 0, 1);
             today.setHours(0, 0, 0, 0);

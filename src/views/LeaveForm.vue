@@ -259,7 +259,7 @@ import Swal from 'sweetalert2'
                 this.timeStamp = moment().format("D/M/YYYY HH:mm:ss")
                 this.formattedDates = this.formatDate(this.dates)
                 this.data = {
-                    timestamp: this.timeStamp,
+                    timestamp: `${this.timeStamp}`,
                     name: this.name,
                     department: this.department,
                     type: this.leaveType,

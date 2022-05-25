@@ -342,7 +342,7 @@ export default {
             }else{
                 if (this.firstMonth == this.lastMonth){
                     // get a month
-                    res = await axios.get(sheetUrl + `/tabs/Per man/query?&Month=${first}&Date=__gte(${this.firstDay})&Date=__lte(${this.lastDay})`)
+                    res = await axios.get(sheetUrl + `/tabs/Per man/query?Month=${first}&Date=__gte(${this.firstDay})&Date=__lte(${this.lastDay})`)
                     this.data = res.data
                     this.createResult()
                     this.filterData()
@@ -773,6 +773,7 @@ export default {
             }
         },
         checkGraphTypeOpt () {
+            //check available graph types by number of days 
             let arr = this.changeFormat(this.dates)
             let firstArr = arr[0].split("-")
             let secondArr = arr[1].split("-")
@@ -787,6 +788,7 @@ export default {
             }
         },
         sumP () {
+            //sum works from project
             let sum = 0
             let index = 0
             for (const p of this.selectedProjects){
@@ -803,6 +805,7 @@ export default {
             }
         },
         sumNP () {
+            //sum works from name and project
             let sum
             let index = 0
             for (const n of this.selectedNames){

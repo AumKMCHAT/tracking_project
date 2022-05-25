@@ -210,11 +210,14 @@ export default {
     }),
     methods: {
         async getData () {
+            //get all data from google sheet
             let res = await axios.get(leaveSheetUrl + '/tabs/leaveFormResponses')
             this.data = res.data
+            //divide data for pending approval and history
             let arr = this.partition(this.data)
             let pendingData = arr[0]
             this.historyData = arr[1].reverse()
+            //insert index to use as a key for data table
             let i = 1
             if (pendingData.length > 0){
                 for (const row of pendingData){
@@ -274,10 +277,17 @@ export default {
             })
         },
         async submit () {
-            let res,trackingRes, newDate, newMonth
+            let res,trackingRes, newDate, newMonth, firstDay, lastDay, checkRes, firstDate, lastDate, mm, gbMonth, gbDate, gbName
             let trackingData = []
-            let newVal , dateArr, newWeek
+            let arr = []
+            let dataArr = []
+            let newVal , dateArr, newWeek, fArr, lArr
+            let alertMsg = ''
+            let find = false
+            let check = false
+            let tracking = true
             let newStatus = {status: this.dataStatus}
+            //edit status each row in google sheet
             for (const row of this.selected){
                 res = await axios.patch(leaveSheetUrl + `/tabs/leaveFormResponses/search?timestamp=${row.timestamp}&name=${row.name}&date(from)=${row['date(from)']}&date(to)=${row['date(to)']}`, newStatus)
                 if (res.status == 200){
@@ -286,48 +296,165 @@ export default {
                     this.waitingData.splice(row['index']-1,1)                    
                 }
             }
+            //after approved add tracking project for leave
             if (this.dataStatus == "approved"){
-                for (const row of this.selected){
-                    if (row.department != "ADMIN"){
-                        if (row['number of days']>= 1){
-                            if (row['number of days']== 1){
-                                dateArr = row['date(from)'].split('/')
-                                newMonth = moment(`${dateArr[1]}`, 'M').format("MM MMM").toUpperCase()
-                                newWeek = this.calWeek(row['date(to)'])
-                                newVal = {
-                                    Date: dateArr[0],
-                                    Week: newWeek,
-                                    Month: `'${newMonth}`,
-                                    Project: 'KS-TakeLeave',
-                                    Work: '1',
-                                    NAME: row.name,
-                                    Department: row.department,
-                                    Remark: '',
-                                }
-                                trackingData.push(newVal)
-                            }else{
-                                for (let i = 0; i < row['number of days']; i++ ){
-                                    newDate = moment(`${row['date(from)']}`, 'D/M/YYYY').add(i, 'days').format('D/M/YYYY')
-                                    dateArr = newDate.split('/')
-                                    newMonth = moment(`${dateArr[1]}`, 'M').format("MM MMM").toUpperCase()
-                                    newWeek = this.calWeek(newDate)
-                                    newVal = {
-                                        Date: dateArr[0],
-                                        Week: newWeek,
-                                        Month: `'${newMonth}`,
-                                        Project: 'KS-TakeLeave',
-                                        Work: '1',
-                                        NAME: row.name,
-                                        Department: row.department,
-                                        Remark: '',
-                                    }
-                                    trackingData.push(newVal)
-                                }
-                            }
-                        }                        
+                for (const n of this.selected){
+                    if (n.department != "ADMIN"){
+                        firstDay = moment(`${n['date(from)']}`, 'D/M/YYYY').format('YYY-MM-DD')
+                        lastDay = moment(`${n['date(to)']}`, 'D/M/YYYY').format('YYY-MM-DD')   
+                        find = true
+                        break;                     
                     }
                 }
-                trackingRes = await axios.post(sheetUrl + '/tabs/Per man', trackingData)
+
+                if (find){
+                    for (const m of this.selected){
+                        if (m.department != "ADMIN"){
+                            if (moment(`${moment(`${m['date(from)']}`, 'D/M/YYYY').format('YYY-MM-DD')}`).isBefore(firstDay, 'days')){
+                                firstDay = moment(`${m['date(from)']}`, 'D/M/YYYY').format('YYY-MM-DD')
+                            }
+                            if (moment(`${moment(`${m['date(to)']}`, 'D/M/YYYY').format('YYY-MM-DD')}`).isAfter(lastDay, 'days')){
+                                lastDay = moment(`${m['date(to)']}`, 'D/M/YYYY').format('YYY-MM-DD')
+                            }                        
+                        }
+                    }
+                    if (moment(firstDay).isSame(lastDay, 'month')){
+                        fArr = firstDay.split('-')
+                        lArr = lastDay.split('-')
+                        firstDate = parseInt(fArr[2])
+                        lastDate = parseInt(lArr[2])
+                        mm = firstDay.split('-')
+                        mm = moment(mm[1], 'M').format("MM MMM").toUpperCase()
+                        checkRes = await axios.get(sheetUrl + `/tabs/Per man/query?Date=__gte(${firstDate})&Date=__lte(${lastDate})&Month=${mm}`)
+                        dataArr = checkRes.data
+                    }else{
+                        for (let i = firstDay.split('/')[1];i<= lastDay.split('/')[1];i++){
+                            mm = moment(`${i}`, 'M').format('MM MMM').toUpperCase().toString()
+                            checkRes = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${mm}`)
+                            arr = arr.concat(checkRes.data)
+                        }
+                        dataArr = arr
+                    }  
+                    
+                    if (dataArr.length != 0){
+                        check = true
+                        gbMonth = this.groupBy(dataArr, "Month")
+                    }
+                }
+
+                if (find){
+                    for (const row of this.selected){
+                        tracking = true
+                        if (row.department != "ADMIN"){
+                            if (row['number of days'] >= 1){
+                                //check tracking history
+                                if (row['number of days'] == 1){
+                                    dateArr = row['date(from)'].split('/')
+                                    newMonth = moment(`${dateArr[1]}`, 'M').format("MM MMM").toUpperCase()
+                                    if (check){
+                                        if (gbMonth[newMonth]){
+                                            gbDate = this.groupBy(gbMonth[newMonth], "Date")
+                                            if (gbDate[dateArr[0]]){
+                                                gbName = this.groupBy(gbDate[dateArr[0]], "NAME")
+                                                if (gbName[row.name]){
+                                                    tracking = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (tracking){
+                                            newWeek = this.calWeek(row['date(to)'])
+                                            newVal = {
+                                                Date: dateArr[0],
+                                                Week: newWeek,
+                                                Month: `'${newMonth}`,
+                                                Project: 'KS-TakeLeave',
+                                                Work: '1',
+                                                NAME: row.name,
+                                                Department: row.department,
+                                                Remark: '',
+                                            }
+                                            trackingData.push(newVal)                                          
+                                    }
+                                }else{
+                                    if (!check){
+                                        for (let i = 0; i < row['number of days']; i++ ){
+                                            newDate = moment(`${row['date(from)']}`, 'D/M/YYYY').add(i, 'days').format('D/M/YYYY')
+                                            dateArr = newDate.split('/')
+                                            newMonth = moment(`${dateArr[1]}`, 'M').format("MM MMM").toUpperCase()
+                                            newWeek = this.calWeek(newDate)
+                                            newVal = {
+                                                Date: dateArr[0],
+                                                Week: newWeek,
+                                                Month: `'${newMonth}`,
+                                                Project: 'KS-TakeLeave',
+                                                Work: '1',
+                                                NAME: row.name,
+                                                Department: row.department,
+                                                Remark: '',
+                                            }
+                                            trackingData.push(newVal)
+                                        }
+                                    }else{
+                                        for (let i = 0; i < row['number of days']; i++ ){
+                                            tracking = true
+                                            newDate = moment(`${row['date(from)']}`, 'D/M/YYYY').add(i, 'days').format('D/M/YYYY')
+                                            dateArr = newDate.split('/')
+                                            newMonth = moment(`${dateArr[1]}`, 'M').format("MM MMM").toUpperCase()
+                                            if (gbMonth[newMonth]){
+                                                gbDate = this.groupBy(gbMonth[newMonth], "Date")
+                                                if (gbDate[dateArr[0]]){
+                                                    gbName = this.groupBy(gbDate[dateArr[0]], "NAME")
+                                                    if (gbName[row.name]){
+                                                        tracking = false
+                                                    }
+                                                }
+                                            }
+                                            if (tracking){
+                                                newWeek = this.calWeek(newDate)
+                                                newVal = {
+                                                    Date: dateArr[0],
+                                                    Week: newWeek,
+                                                    Month: `'${newMonth}`,
+                                                    Project: 'KS-TakeLeave',
+                                                    Work: '1',
+                                                    NAME: row.name,
+                                                    Department: row.department,
+                                                    Remark: '',
+                                                }
+                                                trackingData.push(newVal)                                                
+                                            }
+                                        }
+                                    }
+                                }
+                            }                        
+                        }
+                    }  
+                    if (trackingData.length > 0){
+                        trackingRes = await axios.post(sheetUrl + '/tabs/Per man', trackingData)       
+                        if (trackingRes.status == 200){
+                            for (const row of trackingData){
+                                mm = row.Month.split(' ')
+                                newMonth = mm[1]
+                                alertMsg = alertMsg + "name: " + row.NAME + " date: " + row.Date + " " + newMonth + "<br/>"
+                            }
+                            Swal.fire({
+                            title: 'Tracking success!',
+                            html: `${alertMsg}`,
+                            })
+                        }else{
+                            Swal.fire({
+                            title: 'Something went wrong while insert data!',
+                            text: `Please check data in your google sheet (sheet.best return with status ${trackingRes.status})`,
+                            })
+                        }
+                    }else{
+                        Swal.fire({
+                        title: 'No tracking!',
+                        text: 'All approved leaves were inserted into tracking sheet',
+                        })
+                    }
+                }
             }
             this.selected = []  
         },
@@ -383,11 +510,19 @@ export default {
         },
         partition (arr) {
             return arr.reduce((result, element) => {
-                result[element.status == 'pending' ? 0 : 1].push(element); // Determine and push to small/large arr
+                result[element.status == 'pending' ? 0 : 1].push(element);
                 return result;
                 },
             [[], []]); 
-        }
+        },
+        groupBy (arr, key) {
+            const val = {}
+            return arr.reduce((acc, nval) => {
+                const att = nval[key]
+                acc[att] = [...(acc[att] || []), nval]
+                return acc
+            }, val)
+        },
     }
 }
 </script>

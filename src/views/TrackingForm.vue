@@ -358,21 +358,21 @@ export default {
             this.$vuetify.goTo('#app')
         },
         addField () {
-            console.log("add");
             let row = {project: '', work: ''}
             this.selectedProjects.push(row)
         },
         removeField (index) {
-            console.log("remove");
             this.selectedProjects.splice(index, 1)
         },
         checkWorks () {
             var sum = 0;
+            //sum of works
             for (let i = 0; i<this.selectedProjects.length; i++){
                 if (this.selectedProjects[i].work != ''){
                     sum = sum + this.selectedProjects[i].work
                 }
             }
+            //remaining work
             this.workSum = 1 - sum
             if (this.workSum < 0){
                 this.remainingMsg = `over ${-this.workSum}`
@@ -523,6 +523,7 @@ export default {
             let dateFormat = `${this.month}/${this.date}/${this.year}`
             let firstOfMonth = moment(`${this.month}/1/${this.year}`).format('dddd')
             let day = moment(dateFormat).format('dddd')
+            //find week
             switch (day) {
                 case "Wednesday":
                     this.week = moment(dateFormat).week() - moment(dateFormat).startOf('month').weeks()+1;
@@ -560,10 +561,12 @@ export default {
             let found1 = false;
             let found2 = false;
             if (moment().subtract(6, 'days').format("M") == moment().format("M")){
+                //get data in date range of a month
                 res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${moment().subtract(6, 'days').format("MM MMM").toUpperCase()}&NAME=${this.name}`)
                     data1 = res.data
                 for (let i = 0; i < 7; i++){
                     found1 = false
+                    //will not push into option if date is saturday or sunday orexisiting data in google sheet
                     if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
                         date = moment().subtract(i, 'days').format("D")
                         month = moment().subtract(i, 'days').format("M")
@@ -580,6 +583,7 @@ export default {
                     }
                 }
             }else{
+                //get data in date range between months
                 res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${moment().subtract(6, 'days').format("MM MMM").toUpperCase()}&NAME=${this.name}`)
                     data1 = res.data
                 res = await axios.get(sheetUrl + `/tabs/Per man/search?Month=${moment().format("MM MMM").toUpperCase()}&NAME=${this.name}`)
@@ -587,6 +591,7 @@ export default {
                 for (let i = 0; i < 7; i++){
                     found1 = false
                     found2 = false
+                    //will not push into option if date is saturday or sunday or exisiting data in google sheet
                     if (!(moment().subtract(i, 'days').format("dddd") == "Saturday" || moment().subtract(i, 'days').format("dddd") == "Sunday")){
                         date = moment().subtract(i, 'days').format("D")
                         month = moment().subtract(i, 'days').format("M")
@@ -611,6 +616,7 @@ export default {
                 }
             }
             if (this.dateOpt.length > 1){
+                //before 17.30 set dafault date to yesterday
                 if (moment(`${moment().format("HH:mm")}`, "HH:mm").isBefore(moment('17:30','HH:mm'))){
                     if (moment(`${this.dateOpt[1]}`).isSame(moment().subtract(1, 'days').format("YYYY-MM-DD"))){
                         this.selectedDate = this.dateOpt[1]
@@ -630,8 +636,10 @@ export default {
         },
         findProjectsOpt () {
             this.allProjects = []
+            //get data form google sheet
             axios.get(sheetUrl + '/tabs/projectsSheet')
                 .then(res => {
+                    //data in column 
                     for ( const project of res.data){
                         if (project[this.name] != ''){
                             this.allProjects.push( project[this.name])
