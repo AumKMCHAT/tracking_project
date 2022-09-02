@@ -198,6 +198,7 @@ export default {
         lastMonth: '',
         gbName: '',
         gbProject: '',
+        gbNameP: '',
         chartOptions: {
             series: [],
             chart: {
@@ -238,6 +239,31 @@ export default {
                     text: 'Unit'
                 },
             },
+            legend: {
+                labelFormatter: function() {
+                    if(this.userOptions.stack){
+                        return this.name + ' (' + this.userOptions.stack + ')'
+                    }else{
+                        return this.name
+                    }  
+                }
+            },
+            tooltip: {
+                formatter: function () {
+                    if(this.series.userOptions.stack){
+                        return '<b>' + this.x + '</b><br/>' +
+                        'Name:' + this.series.name + ': ' + this.y + '<br/>' +
+                        'Project: ' + this.series.userOptions.stack + '<br/>' +
+                        'Total: ' + this.point.stackTotal ;
+                    }else{
+                        return '<b>' + this.x + '</b><br/>' +
+                        'Project: ' + this.series.name + '<br/>' +
+                        'Total: ' + this.point.stackTotal ;
+                    }
+                    
+                        
+                }
+            },
             responsive: {  
                 rules: [{  
                     condition: {  
@@ -248,6 +274,7 @@ export default {
         },
         pieCharts: [],
         result: [],
+        dataProject: [],
         showDates: [],
         graphType: '',
         graphTypes: ["Daily", "Weekly", "Monthly"],
@@ -4078,6 +4105,7 @@ export default {
             this.data = []
             this.chartOptions.series = []
             this.result = []
+            this.dataProject = []
             this.chartOptions.xAxis.categories = []
             let datesArr = this.changeFormat(this.dates)
             let firstArr, secondArr
@@ -4095,36 +4123,94 @@ export default {
                     // select name and project
                     this.createDataNP()
                     this.createSeries()
+                    this.createSortMsgAll()
                 }else{
                     //select name
                     this.createDataN()
                     this.createSeries()
                     this.selectedProjects = []
+                    this.createSortMsgAll()
                 }
             }else{
                 if (this.selectedProjects.length > 0){
                     //select project
                     this.createDataP()
                     if (!this.pieChart){
-                        this.createSeries()  
+                        this.createSeriesP()  
                     }
+                    this.createSortMsgP ()
                 }else{
                     //select date range
                     this.createData()
                     this.createSeries()
                     this.selectedProjects = []
+                    this.createSortMsgAll()
                 }
             }
+            
+            // if (!this.pieChart){
+            //     for (const p of this.chartOptions.series){
+            //         sum = p.data.reduce((a, b) => a + b, 0)
+            //         msg = `${p.name}: <span class="blue--text">${sum}</span> ${sum>1? "days ":"day "}(<span class="green--text">${sum*8}</span> ${sum*8>1?"hrs":"hr"})`
+            //         this.projectsSum.push(msg)
+            //     }  
+            // }
+            
+    
+        },
+        createSortMsgAll () {
             let msg = ''
-            let sum
+            let sum = 0
             if (!this.pieChart){
-                for (const p of this.chartOptions.series){
-                    sum = p.data.reduce((a, b) => a + b, 0)
-                    msg = `${p.name}: <span class="blue--text">${sum}</span> ${sum>1? "days ":"day "}(<span class="green--text">${sum*8}</span> ${sum*8>1?"hrs":"hr"})`
+                // sort by this.chartOptions.series.data.reduce((a, b) => a + b, 0)
+                let chartSeriesCopy = this.chartOptions.series
+                let total_hr = 0
+                chartSeriesCopy.sort( function(a,b) { return b.data.reduce((a,b) => a+b,0) - a.data.reduce((a,b) => a+b,0) } )
+                for (const p of chartSeriesCopy) {
+                    sum = (p.data.reduce((a, b) => a + b, 0))*8
+                    if (!isNaN(sum)) {
+                       total_hr += sum 
+                    }
+                }
+                for (const p of chartSeriesCopy){
+                    sum = parseFloat(p.data.reduce((a, b) => a + b, 0).toFixed(2))
+                    let percent = (sum*8)/total_hr * 100
+                    msg = `${p.name}: <span class="blue--text">${sum}</span> ${sum>1? "days ":"day "}(<span class="green--text">${sum*8}</span> ${sum*8>1?"hrs":"hr"}) (<span class="purple--text">${percent.toFixed(2)}%</span>)`
                     this.projectsSum.push(msg)
-                }  
+                }
+               
+            }
+
+        },
+
+
+        createSortMsgP (){
+            let msg = ''
+            let sum = 0
+            let sortSum = []
+            if (!this.pieChart){
+                for (const d of this.selectedProjects){
+                    sortSum.push ([d , 0])
+                }
+                for (const p of this.chartOptions.series){
+                    for (const dataP of sortSum){
+                        if (p.stack == dataP[0]){
+                            dataP[1] = parseFloat(dataP[1]) + parseFloat(p.data)
+                        }
+                    }
+                    sum = parseFloat(sum) + parseFloat(p.data)
+                    sortSum.sort((a, b) => b[1]-a[1] )
+                }
+                for (const p of sortSum){
+                    let percentP = 0
+                    percentP = (p[1]*100) / sum
+                     msg = `${p[0]}: <span class="blue--text">${p[1].toFixed(2)}</span> ${p[1]>1? "days ":"day "}(<span class="green--text">${(p[1]*8).toFixed(2)}</span>) ${p[1]*8>1?"hrs":"hr"}  (<span class="red--text">${percentP.toFixed(2)} %</span>)`
+                    this.projectsSum.push(msg)
+                }
+                 
             }
         },
+
         filterDate () {
             let a = [];
             let m, month
@@ -4155,9 +4241,36 @@ export default {
                 let obj = new Object()
                 obj.name = p
                 obj.data = this.result[index]
+                obj.stack = ""
                 this.chartOptions.series.push(obj)
                 index++
             }
+            this.chartOptions.title.text = this.formatDateShow()
+            this.isLoading = false
+        },
+
+        createSeriesP () {
+            let index = 0
+            let rawData = []
+            
+            for (const p of this.dataProject){
+                let arrayProject = []
+                let obj = new Object()
+                obj.name = p.NAME
+                arrayProject.push(parseFloat(p.Work))
+                obj.data = arrayProject
+                obj.stack = p.Project
+                rawData.push(obj)
+            }
+
+            rawData.forEach(x => {               
+                const obj =  this.chartOptions.series.find(dataP => dataP.name === x.name && dataP.stack === x.stack);
+                if (obj) {
+                    obj.data.push(x.data[0])
+                } else {
+                    this.chartOptions.series.push(x)
+                }
+            });
             this.chartOptions.title.text = this.formatDateShow()
             this.isLoading = false
         },
@@ -4493,21 +4606,60 @@ export default {
                 this.graphTypes = ["Daily", "Weekly", "Monthly"]
             }
         },
+
+        calDataP (obj , gbProjectData) {
+            // sum work form empolyess name
+            if (obj) {
+                obj.Work = parseFloat(obj.Work) + parseFloat(gbProjectData.Work)
+                obj.Work = obj.Work.toFixed(2)
+            } else {
+                this.dataProject.push(gbProjectData);
+            }
+        },
+
         sumP () {
             //sum works from project
             let sum = 0
             let index = 0
-            for (const p of this.selectedProjects){
-                if (this.gbProject[p]){
-                    sum = 0
-                    for (const n of this.gbProject[p] ){
-                        sum = sum + parseFloat(n.Work)
-                    }
-                    this.result[index].push(sum)
-                }else{
-                    this.result[index].push(0)
+            
+            // for (const p of this.selectedProjects){
+            //     if (this.gbProject[p]){
+            //         sum = 0
+            //         // this.gbNameP = this.groupBy(this.gbProject[p] , "NAME")
+            //         for (const n of this.gbProject[p] ){
+            //             sum = sum + parseFloat(n.Work)
+            //         }
+            //         this.result[index].push(sum)
+            //     }else{
+            //         this.result[index].push(0)
+            //     }
+            //     index++
+            // }
+
+            for (const p1 of this.selectedProjects){
+                if (this.gbProject[p1]){
+                    
+                    switch (this.graphType){
+                        case 'Daily' :
+                            this.gbProject[p1].forEach(gbProjectData => {               
+                                const obj =  this.dataProject.find(dataP => dataP.NAME === gbProjectData.NAME && dataP.Project === gbProjectData.Project && dataP.Date === gbProjectData.Date);
+                                this.calDataP(obj , gbProjectData)
+                            });
+                            break;
+                        case 'Weekly' :
+                            this.gbProject[p1].forEach(gbProjectData => {               
+                                const obj =  this.dataProject.find(dataP => dataP.NAME === gbProjectData.NAME && dataP.Project === gbProjectData.Project && dataP.Week === gbProjectData.Week);
+                                this.calDataP(obj , gbProjectData)
+                            });
+                            break;
+                        case 'Monthly' :
+                            this.gbProject[p1].forEach(gbProjectData => {               
+                                const obj =  this.dataProject.find(dataP => dataP.NAME === gbProjectData.NAME && dataP.Project === gbProjectData.Project);
+                                this.calDataP(obj , gbProjectData)
+                            });
+                            break;
+                   }
                 }
-                index++
             }
         },
         sumNP () {
