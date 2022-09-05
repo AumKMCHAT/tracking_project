@@ -220,7 +220,7 @@ export default {
                     borderWidth: 0.1,
                     pointWidth: 20,
                     formatter: function () {
-                        return (this.y!=0)?`${this.y} ( ${this.y*8} ${this.y*8>1?" hrs )":" hr )"}`:""
+                        return (this.y!=0)?`${(this.y/this.point.stackTotal*100).toFixed(2)}% ( ${this.y*8} ${this.y*8>1?" hrs )":" hr )"}`:""
                     },
                 },
                 series : {
