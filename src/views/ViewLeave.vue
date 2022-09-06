@@ -255,7 +255,7 @@ export default {
         deny () {
             let msg = ''
             for (const row of this.selected){
-                msg = msg + row.name + " " + row.type + " for " + row['number of days'] +" day "+ row['date(from)'] + " to " + row['date(to)'] + '<br>'
+                msg = msg + row.name + " " + row.type + " for " + row["number of days"] +" day "+ row['date(from)'] + " to " + row['date(to)'] + '<br>'
             }
             Swal.fire({
                 title: 'Do you want to deny all of this?',
@@ -277,8 +277,10 @@ export default {
             })
         },
         async submit () {
-            let res,trackingRes, newDate, newMonth, firstDay, lastDay, checkRes, firstDate, lastDate, mm, gbMonth, gbDate, gbName
+            let res,trackingRes, newDate, newMonth, firstDay, lastDay, checkRes, firstDate, lastDate, mm, gbMonth, gbDate, gbName, dayoffRes
             let trackingData = []
+            let dayoffData = []
+            let newValDayoff
             let arr = []
             let dataArr = []
             let newVal , dateArr, newWeek, fArr, lArr
@@ -346,7 +348,7 @@ export default {
                     for (const row of this.selected){
                         tracking = true
                         if (row.department != "ADMIN"){
-                            if (row['number of days'] >= 1){
+                            if (row['number of days'] >= 0.5){
                                 //check tracking history
                                 if (row['number of days'] == 1){
                                     dateArr = row['date(from)'].split('/')
@@ -374,6 +376,14 @@ export default {
                                                 Department: row.department,
                                                 Remark: '',
                                             }
+                                            newValDayoff = {
+                                                "Year": dateArr[2],
+                                                "Month": `'${newMonth}`,
+                                                "Name": row.name,
+                                                "ประเภทการลา": row.type,
+                                                "จำนวนวันที่ลา": row['number of days']
+                                            }
+                                            dayoffData.push(newValDayoff)
                                             trackingData.push(newVal)                                          
                                     }
                                 }else{
@@ -393,6 +403,14 @@ export default {
                                                 Department: row.department,
                                                 Remark: '',
                                             }
+                                            newValDayoff = {
+                                                "Year": dateArr[2],
+                                                "Month": `'${newMonth}`,
+                                                "Name": row.name,
+                                                "ประเภทการลา": row.type,
+                                                "จำนวนวันที่ลา": row['number of days']
+                                            }
+                                            dayoffData.push(newValDayoff)
                                             trackingData.push(newVal)
                                         }
                                     }else{
@@ -422,6 +440,14 @@ export default {
                                                     Department: row.department,
                                                     Remark: '',
                                                 }
+                                                newValDayoff = {
+                                                    "Year": dateArr[2],
+                                                    "Month": `'${newMonth}`,
+                                                    "Name": row.name,
+                                                    "ประเภทการลา": row.type,
+                                                    "จำนวนวันที่ลา": row['number of days']
+                                                }
+                                                dayoffData.push(newValDayoff)
                                                 trackingData.push(newVal)                                                
                                             }
                                         }
@@ -431,8 +457,11 @@ export default {
                         }
                     }  
                     if (trackingData.length > 0){
-                        trackingRes = await axios.post(sheetUrl + '/tabs/Per man', trackingData)       
-                        if (trackingRes.status == 200){
+                        trackingRes = await axios.post(sheetUrl + '/tabs/Per man', trackingData)
+                        dayoffRes = await axios.post(leaveSheetUrl + '/tabs/ลงวันลาที่อนุมัติแล้ว', dayoffData)
+                        console.log("trackingData: ", trackingData)
+                        console.log("dayoffData: ", dayoffData)
+                        if (trackingRes.status == 200 && dayoffRes.status == 200){
                             for (const row of trackingData){
                                 mm = row.Month.split(' ')
                                 newMonth = mm[1]
