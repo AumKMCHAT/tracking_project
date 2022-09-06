@@ -220,7 +220,7 @@ export default {
                     borderWidth: 0.1,
                     pointWidth: 20,
                     formatter: function () {
-                        return (this.y!=0)?`${(this.y/this.point.stackTotal*100).toFixed(2)}% ( ${this.y*8} ${this.y*8>1?" hrs )":" hr )"}`:""
+                        return (this.y!=0)?`${this.y*8} ${this.y*8>1?" hrs":" hr"} ( ${(this.y/this.point.stackTotal*100).toFixed(2)}% )  `:""
                     },
                 },
                 series : {
@@ -442,16 +442,7 @@ export default {
                     this.createSortMsgAll()
                 }
             }
-            
-            // if (!this.pieChart){
-            //     for (const p of this.chartOptions.series){
-            //         sum = p.data.reduce((a, b) => a + b, 0)
-            //         msg = `${p.name}: <span class="blue--text">${sum}</span> ${sum>1? "days ":"day "}(<span class="green--text">${sum*8}</span> ${sum*8>1?"hrs":"hr"})`
-            //         this.projectsSum.push(msg)
-            //     }  
-            // }
-            
-    
+              
         },
         createSortMsgAll () {
             let msg = ''
@@ -917,20 +908,6 @@ export default {
             let sum = 0
             let index = 0
             
-            // for (const p of this.selectedProjects){
-            //     if (this.gbProject[p]){
-            //         sum = 0
-            //         // this.gbNameP = this.groupBy(this.gbProject[p] , "NAME")
-            //         for (const n of this.gbProject[p] ){
-            //             sum = sum + parseFloat(n.Work)
-            //         }
-            //         this.result[index].push(sum)
-            //     }else{
-            //         this.result[index].push(0)
-            //     }
-            //     index++
-            // }
-
             for (const p1 of this.selectedProjects){
                 if (this.gbProject[p1]){
                     
