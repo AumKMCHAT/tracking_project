@@ -1,3 +1,3 @@
-export const sheetUrl = 'https://sheet.best/api/sheets/b8d15c7d-2bb8-4d5e-8e08-8c8cf0004f6d'
-export const leaveSheetUrl = 'https://sheet.best/api/sheets/ecff6ef3-9f0c-4621-b40a-c6f698d92132'
+export const sheetUrl = 'https://sheet.best/api/sheets/bf9b622d-0e55-4a1a-bbb9-e527ae5f3926'
+export const leaveSheetUrl = 'https://sheet.best/api/sheets/70ba1aa3-6bad-4c71-b402-5de842212b8f'
 export const secretPass = 'password1234'
