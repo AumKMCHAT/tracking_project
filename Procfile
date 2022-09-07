@@ -1,1 +1,1 @@
-web: lein run -m demo.web $PORT
+web: bundle exec rails server -p $PORT
