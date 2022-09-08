@@ -490,7 +490,7 @@ export default {
                 for (const p of sortSum){
                     let percentP = 0
                     percentP = (p[1]*100) / sum
-                     msg = `${p[0]}: <span class="blue--text">${p[1].toFixed(2)}</span> ${p[1]>1? "days ":"day "}(<span class="green--text">${(p[1]*8).toFixed(2)}</span>) ${p[1]*8>1?"hrs":"hr"}  (<span class="red--text">${percentP.toFixed(2)} %</span>)`
+                     msg = `${p[0]}: <span class="blue--text">${p[1].toFixed(2)}</span> ${p[1]>1? "days ":"day "}(<span class="green--text">${(p[1]*8).toFixed(2)}</span>) ${p[1]*8>1?"hrs":"hr"}  (<span class="purple--text">${percentP.toFixed(2)} %</span>)`
                     this.projectsSum.push(msg)
                 }
                  
