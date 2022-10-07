@@ -289,6 +289,7 @@ export default {
             let check = false
             let tracking = true
             let newStatus = {status: this.dataStatus}
+            let alertArr = [this.selected]
             //edit status each row in google sheet
             for (const row of this.selected){
                 res = await axios.patch(leaveSheetUrl + `/tabs/leaveFormResponses/search?timestamp=${row.timestamp}&name=${row.name}&date(from)=${row['date(from)']}&date(to)=${row['date(to)']}`, newStatus)
@@ -348,7 +349,7 @@ export default {
                     for (const row of this.selected){
                         tracking = true
                         if (row.department != "ADMIN"){
-                            if (row['number of days'] >= 0.5){
+                            if (row['number of days'] >= 1){
                                 //check tracking history
                                 if (row['number of days'] == 1){
                                     dateArr = row['date(from)'].split('/')
@@ -462,7 +463,7 @@ export default {
                         console.log("trackingData: ", trackingData)
                         console.log("dayoffData: ", dayoffData)
                         if (trackingRes.status == 200 && dayoffRes.status == 200){
-                            for (const row of trackingData){
+                            for (const row of alertArr){
                                 mm = row.Month.split(' ')
                                 newMonth = mm[1]
                                 alertMsg = alertMsg + "name: " + row.NAME + " date: " + row.Date + " " + newMonth + "<br/>"

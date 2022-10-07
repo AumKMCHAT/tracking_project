@@ -371,7 +371,14 @@ export default {
                 if (this.firstMonth == this.lastMonth){
                     // get a month
                     res = await axios.get(sheetUrl + `/tabs/Per man/query?Month=${first}&Date=__gte(${this.firstDay})&Date=__lte(${this.lastDay})`)
-                    this.data = res.data
+                    // query res >= firstDay
+                    let temp = []
+                    for (const per_man of res.data) {
+                        if (per_man.Date >= this.firstDay) {
+                            temp.push(per_man)
+                        }
+                    }
+                    this.data = temp
                     this.createResult()
                     this.filterData()
                     this.isLoading = false
@@ -713,6 +720,7 @@ export default {
                     this.chartOptions.xAxis.categories = this.selectedNames
                     this.findProjects()
                     this.createResult()
+                    // console.log(this.selectedNames, this.selectedProjects)
                     for (const p of this.selectedProjects){
                         for (const n of this.selectedNames){
                             sum = 0
