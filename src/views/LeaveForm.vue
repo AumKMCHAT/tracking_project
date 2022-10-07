@@ -353,9 +353,9 @@ import Swal from 'sweetalert2'
                     start = arr[0]
                     end = arr[1]                    
                 }
-                start = start.split("/")
-                end = end.split("/")
-                nDays = moment([end[2], end[1], end[0]]).diff(moment([start[2], start[1], start[0]]), 'days') +1
+                var start_moment = moment(start, "DD/MM/YYYY")
+                var end_moment = moment(end, "DD/MM/YYYY")
+                nDays = moment(end_moment).diff(moment(start_moment), 'days') +1
                 return nDays
             },
             showDescription () {
