@@ -40,6 +40,10 @@ const routes = [
         path: '/viewleave',
         name: 'ViewLeave',
         component: () => import('../src/views/ViewLeave')
+    },{
+        path: '/tothemoon',
+        name: 'ToTheMoon',
+        component: () => import('../src/views/ToTheMoon')
     },
 
 ]

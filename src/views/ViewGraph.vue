@@ -150,7 +150,7 @@ export default {
         { name: 'QA', data: [[parseFloat(n.QA),0.5]] }]
           this.series.push(arr)
         }
-        this.row = Math.ceil(this.series.length/2)
+        // this.row = Math.ceil(this.series.length/2)
         this.isLoading = false
       }
   }
